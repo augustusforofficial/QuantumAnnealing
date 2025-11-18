@@ -50,6 +50,7 @@ int hamDistance(int i, int j)
 }
 
 /*ハミルトニアン対角埋め込み*/
+/*iBitNumの切り替えで読み方を変更可能*/
 void embed_diagonal_H(double H[Nums], double J[Nums][Nums])
 {
     int i, j, k;
@@ -61,7 +62,7 @@ void embed_diagonal_H(double H[Nums], double J[Nums][Nums])
         {
             for (k = j + 1; k < N; k++)
             {
-                H[i] += (2 * iBitNumLeft(i, j) - 1) * (2 * iBitNumLeft(i, k) - 1) * J[j][k];
+                H[i] += (2 * iBitNumRight(i, j) - 1) * (2 * iBitNumRight(i, k) - 1) * J[j][k];
             }
         }
     }
@@ -94,6 +95,8 @@ void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, dou
         /*B(t)は横磁場の大きさ.tに単調減少*/
         double Bt = B0 * (1 - t / tau);
 
+        printf("time_evolution%d\n",time);
+
         /*時間発展演算子Tを作成*/
         double complex T[Nums][Nums] = {0.0 + 0.0 * I};
 
@@ -109,7 +112,6 @@ void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, dou
                 }
             }
         }
-
 
         // /*非対角成分*/
         // double Ht[Nums][Nums] = {0.0};

@@ -5,8 +5,8 @@
 #include <complex.h>
 #include <math.h>
 
-#define N 9
-#define Nums 512
+#define N 8
+#define Nums 256
 
 /*utility*/
 int int_pow(int base, int exp);
@@ -14,7 +14,7 @@ int StoQ(int s);
 
 int QtoS(int q);
 int iBitNumLeft(int d,int i);
-int iBitNumsRight(int d,int i);
+int iBitNumRight(int d,int i);
 int hamDistance(int i,int j);
 
 /*Make Hamiltonian*/

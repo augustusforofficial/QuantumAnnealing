@@ -86,6 +86,7 @@ void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, dou
     double H[Nums] = {0.0};
     embed_diagonal_H(H,J);
 
+
     /*時間発展関数化 (f0,f1)を入れたら、それを変更したい。*/
     for (time = 0; time < Time; time++)
     {
@@ -94,8 +95,6 @@ void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, dou
         double At = t / tau;
         /*B(t)は横磁場の大きさ.tに単調減少*/
         double Bt = B0 * (1 - t / tau);
-
-        printf("time_evolution%d\n",time);
 
         /*時間発展演算子Tを作成*/
         double complex T[Nums][Nums] = {0.0 + 0.0 * I};

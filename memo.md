@@ -22,7 +22,9 @@
 git init
 
 # ステージング（ローカルに一時的保存）
-git add []
+git add [ファイル,フォルダ]
+#現在ディレクトリ全部を指定
+git add .
 
 # コミット (ローカルリポジトリ保存)
 git commit -m "message"

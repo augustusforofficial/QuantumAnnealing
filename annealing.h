@@ -5,8 +5,8 @@
 #include <complex.h>
 #include <math.h>
 
-#define N 5
-#define Nums 32
+#define N 16
+#define Nums 65536
 
 /*utility*/
 int int_pow(int base, int exp);
@@ -18,10 +18,10 @@ int iBitNumRight(int d,int i);
 int hamDistance(int i,int j);
 
 /*Make Hamiltonian*/
-void embed_diagonal_H(double H[Nums], double J[Nums][Nums]);
+void embed_diagonal_H(double H[Nums], double J[N][N]);
 
 /*Time Evolution*/
-void time_evolution(double complex f1[Nums],double J[Nums][Nums],int Time,double B0,double tau);
+void time_evolution(double complex f1[Nums],double J[N][N],int Time,double B0,double tau);
 
 /*normalize*/
 void normalize(double complex psi[Nums]);

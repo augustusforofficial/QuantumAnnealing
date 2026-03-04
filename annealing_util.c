@@ -51,7 +51,7 @@ int hamDistance(int i, int j)
 
 /*ハミルトニアン対角埋め込み*/
 /*iBitNumの切り替えで読み方を変更可能*/
-void embed_diagonal_H(double H[Nums], double J[Nums][Nums])
+void embed_diagonal_H(double H[Nums], double J[N][N])
 {
     int i, j, k;
     /*対角成分の初期化*/
@@ -69,7 +69,7 @@ void embed_diagonal_H(double H[Nums], double J[Nums][Nums])
 }
 
 /*時間発展*/
-void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, double B0, double tau)
+void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0, double tau)
 {
     double dt = tau / (double)Time;
     int time;
@@ -84,9 +84,7 @@ void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, dou
 
     /*ハミルトニアン対角成分の定義*/
     double H[Nums] = {0.0};
-    embed_diagonal_H(H,J);
-
-
+    embed_diagonal_H(H, J);
     /*時間発展関数化 (f0,f1)を入れたら、それを変更したい。*/
     for (time = 0; time < Time; time++)
     {
@@ -96,61 +94,34 @@ void time_evolution(double complex f1[Nums], double J[Nums][Nums], int Time, dou
         /*B(t)は横磁場の大きさ.tに単調減少*/
         double Bt = B0 * (1 - t / tau);
 
-        /*時間発展演算子Tを作成*/
-        double complex T[Nums][Nums] = {0.0 + 0.0 * I};
-
-        /*対角,磁場,0すべてやる*/
-        for(int i=0; i<Nums; i++){
-            for(int j=0; j<Nums; j++){
-                if(i==j){
-                    T[i][j] = 1.0 - ((H[i]*At*dt*0.5) * I);
-                }else if(hamDistance(i,j)==1){
-                    T[i][j] = -1 * Bt * dt * I;
-                }else{
-                    T[i][j] = 0.0;
-                }
-            }
-        }
-
-        // /*非対角成分*/
-        // double Ht[Nums][Nums] = {0.0};
-        // for (int i = 0; i < Nums; i++)
-        // {
-        //     for (int j = 0; j < Nums; j++)
-        //     {
-        //         if (hamDistance(i, j) == 1)
-        //         {
-        //             Ht[i][j] = -1 * Bt;
-        //         }
-        //         else
-        //         {
-        //             Ht[i][j] = 0;
-        //         }
-        //         /*improve : 3.時間発展exp(-iHt)の近似法*/
-        //         T[i][j] = (Ht[i][j] * dt * -0.5) * I;
-        //     }
-        // }
-        // /*対角成分.非対角から対角の順番じゃ無いと対角成分0になるので注意*/
-        // for (int i = 0; i < Nums; i++)
-        // {
-        //     Ht[i][i] = At * H[i];
-        //     T[i][i] = 1.0 - ((Ht[i][i] * dt * 0.5) * I); /* T = I - iHdt*/
-        // }
-
         /*ついに時間発展 f1=T・f0*/
         /*improve : ここ行列ライブラリ使うのあり*/
+        /*行列の代わりに変数を用意。これに都度代入を行う*/
+        double complex T_ij = 0.0 + 0.0 * I;
         for (int i = 0; i < Nums; i++)
         {
             f1[i] = 0;
-            for (int j = 0; j < Nums; j++)
+
+            /*先に対角成分だけ足しこんで、そのあとに非対角成分も足しこむ*/
+            /*まずは対角成分*/
+            T_ij = 1.0 - ((0.5 * H[i] * At * dt) * I);
+            f1[i] += T_ij * f0[i];
+            for (int bit = 0; bit < N; bit++)
             {
-                f1[i] += T[i][j] * f0[j];
+                /*次に非対角成分*/
+                /*i = 7の時は、 1<<bit で 001,010,100 とXORして　j=110,101,011*/
+                int j = i ^ (1 << bit);
+                T_ij = -1 * Bt * dt * I;
+                f1[i] += T_ij * f0[j];
             }
         }
         for (int i = 0; i < Nums; i++)
         {
             f0[i] = f1[i];
         }
+        
+        /*時間毎に正規化しないとオーバーフローして -nan になってしまった*/
+        normalize(f0);
 
         // 時間発展出力用
         //  printf("%dth\n f0",time);

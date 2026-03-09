@@ -3,13 +3,13 @@
 int main(){
     int i,j,k;
     /*定数宣言*/
-    int ni[N] = {1,3,5,6,7,10,11,13,15,17,19,21,23,25,27,29};
+    int ni[N] = {1,3,5,7,9,11,13,15};
     double J[N][N] = {0.0};
     double H[Nums] = {0.0};
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
-    int Time = 1000;
+    int Time = 1000000;
     double tau = 1.0;
 
     /*J[i][j]の定義.これは問題によって定義する*/

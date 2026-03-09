@@ -17,10 +17,14 @@ axis is the probability.
 
 Usage::
 
-    python3 plot_annealing.py executable_name [--output plot.png]
+    python3 plot_annealing.py executable_name [--output plot.png] [--threshold 0.01] [--top 20]
 
 The executable is expected to be in the 'bin' directory.
-If an output file is supplied, save the plot to that path. Otherwise, save to 'plot.png'.
+
+Options:
+  --output, -o:   Output file path (default: plot.png)
+  --threshold:    Only show states with probability >= threshold
+  --top N:        Show only top N states with highest probabilities
 """
 
 import argparse
@@ -66,32 +70,46 @@ def read_probabilities_from_executable(exe_path: str) -> np.ndarray:
     return np.array(probs)
 
 
-def plot_probabilities(probs: np.ndarray, output: str = None):
+def plot_probabilities(probs: np.ndarray, output: str = None, threshold: float = None, top_n: int = None):
     """Draw a bar chart of the probabilities.
 
     ``probs`` is a 1D array containing probabilities for states 0..len(probs)-1.
-    If ``output`` is provided, save the figure to that path instead of displaying it.
-    If not, save to 'plot.png'.
+    
+    Args:
+        probs: Array of probabilities
+        output: Output file path. If None, save to 'plot.png'
+        threshold: Only show states with probability >= threshold
+        top_n: Show only top N states with highest probabilities
     """
     states = np.arange(probs.size)
-    # Adjust figure size based on number of states
-    fig_width = max(10, probs.size / 100)
-    plt.figure(figsize=(fig_width, 6))
-    plt.bar(states, probs, width=0.8)
+    
+    # Filter by threshold or top_n
+    if threshold is not None:
+        mask = probs >= threshold
+        filtered_states = states[mask]
+        filtered_probs = probs[mask]
+    elif top_n is not None:
+        top_indices = np.argsort(probs)[-top_n:]
+        filtered_states = states[top_indices]
+        filtered_probs = probs[top_indices]
+    else:
+        filtered_states = states
+        filtered_probs = probs
+    
+    # Sort by probability for better visualization
+    sorted_indices = np.argsort(filtered_probs)
+    sorted_states = filtered_states[sorted_indices]
+    sorted_probs = filtered_probs[sorted_indices]
+    
+    # Use square figure
+    plt.figure(figsize=(8, 8))
+    plt.bar(range(len(sorted_probs)), sorted_probs, width=0.8)
     plt.xlabel("State index")
     plt.ylabel("Probability")
     plt.title("Quantum Annealing State Probabilities")
-    
-    # Set x-axis ticks to avoid crowding
-    if probs.size > 100:
-        # For large number of states, show only every Nth tick label
-        tick_interval = max(1, probs.size // 20)
-        tick_positions = np.arange(0, probs.size, tick_interval)
-        plt.xticks(tick_positions, rotation=45, fontsize=8)
-    else:
-        plt.xticks(states, rotation=45)
-    
+    plt.xticks(range(len(sorted_probs)), sorted_states, rotation=45, fontsize=10)
     plt.tight_layout()
+    
     if output:
         plt.savefig(output)
         print(f"Saved plot to {output}")
@@ -104,7 +122,9 @@ def plot_probabilities(probs: np.ndarray, output: str = None):
 def main():
     parser = argparse.ArgumentParser(description="Plot probabilities from a quantum annealing executable.")
     parser.add_argument("exe_name", help="Name of the compiled C executable in the 'bin' directory that prints state probabilities.")
-    parser.add_argument("--output", "-o", help="If given, save the plot to this file instead of displaying it.")
+    parser.add_argument("--output", "-o", help="Output file path (default: plot.png).")
+    parser.add_argument("--threshold", type=float, help="Only show states with probability >= threshold.")
+    parser.add_argument("--top", type=int, help="Show only top N states with highest probabilities.")
     args = parser.parse_args()
 
     exe_path = os.path.join("bin", args.exe_name)
@@ -116,7 +136,7 @@ def main():
     if probs.size == 0:
         print("No probabilities were found in the executable output.", file=sys.stderr)
         sys.exit(1)
-    plot_probabilities(probs, args.output)
+    plot_probabilities(probs, args.output, threshold=args.threshold, top_n=args.top)
 
 
 if __name__ == "__main__":

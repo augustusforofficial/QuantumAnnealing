@@ -5,8 +5,8 @@
 #include <complex.h>
 #include <math.h>
 
-#define N 16
-#define Nums 65536
+#define N 8
+#define Nums 256
 
 /*utility*/
 int int_pow(int base, int exp);

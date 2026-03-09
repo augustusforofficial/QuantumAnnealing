@@ -9,9 +9,11 @@
 				"-fdiagnostics-color=always",
 				"-g",
 				"${file}",
-				"annealing_util.c",
+				"${workspaceFolder}/src/annealing_util.c",
+				"-I",
+				"${workspaceFolder}/src",
 				"-o",
-				"${fileDirname}/${fileBasenameNoExtension}",
+				"${workspaceFolder}/bin/${fileBasenameNoExtension}",
 				"-lm"
 			],
 			"options": {

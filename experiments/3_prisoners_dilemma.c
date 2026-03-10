@@ -80,8 +80,10 @@ int main()
     int Time = 1000000;
     double tau = 1.0;
 
-    /*J[i][j]の定義.これは問題によって定義する*/
     /*H = - Σ J[i][j]q[i]q[j], -ついていることに注意*/
+    /* H = (HA+HB+HC) + penalty terms*/
+    /* HA =  - Σ payoff(i,j,k) xi yj zk = Σ -1*payoff(i,j,k)*q(i,j,k)*(xi+yj+zk -2 )*/
+    /* HA is a minus value of payoff for player 1*/
     for (i = 0; i < N; i++)
     {
         for (j = 0; j < N; j++)

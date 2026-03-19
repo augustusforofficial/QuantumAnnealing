@@ -1,4 +1,5 @@
 #include "annealing.h"
+#include "string.h"
 
 /*p:利得プレイヤー番号*/
 /*i,j,k : それぞれプレイヤー1,2,3 の戦略番号. 今回は　i,j,k = 0,1*/
@@ -24,6 +25,8 @@ int payoff_of_3_prisoners_dilemma(int p, int i, int j, int k)
 int main()
 {
     int i, j, k;
+
+    /*improve : */
     /*定数宣言*/
     /*0 : 黙秘 , 1 : 自白　とする*/
     const int num_player = 3;
@@ -36,9 +39,15 @@ int main()
         sizeof(strategy_0) / sizeof(strategy_0[0]),
         sizeof(strategy_1) / sizeof(strategy_1[0]),
         sizeof(strategy_2) / sizeof(strategy_2[0])};
+    int sum_stg;
+    for (i = 0; i < num_player; i++)
+    {
+        sum_stg += num_stg[i];
+    }
 
     /*利得行列.今回は 3人分×各戦略数*/
-    int payoff[num_player][num_stg[0]][num_stg[1]][num_stg[2]];
+    int payoff_sum[num_stg[0]][num_stg[1]][num_stg[2]];
+    memset(payoff_sum, 0, sizeof(payoff_sum));
 
     for (int p = 0; p < num_player; p++)
     {
@@ -48,50 +57,34 @@ int main()
             {
                 for (k = 0; k < num_stg[2]; k++)
                 {
-                    payoff[p][i][j][k] = payoff_of_3_prisoners_dilemma(p, i, j, k);
+                    payoff_sum[i][j][k] += payoff_of_3_prisoners_dilemma(p, i, j, k);
                 }
             }
         }
     }
 
-    for (int p = 0; p < num_player; p++)
+    for (i = 0; i < num_stg[0]; i++)
     {
-        printf("player%d\n", p);
-        for (i = 0; i < num_stg[0]; i++)
+        for (j = 0; j < num_stg[1]; j++)
         {
-            for (j = 0; j < num_stg[1]; j++)
+            for (k = 0; k < num_stg[2]; k++)
             {
-                for (k = 0; k < num_stg[2]; k++)
-                {
-                    printf("%d, ", payoff[p][i][j][k]);
-                }
+                printf("%d, ", payoff_sum[i][j][k]);
             }
         }
-        printf("\n");
     }
+    printf("\n");
 
-    /* 2026/3/9 : 利得までOK*/
+    /* 2026/3/9,13 : 利得までOK*/
 
-    double J[N][N] = {0.0};
+    double J[N][N] = {}; /*ハミルトニアンの2次項*/
+    double h[N] = {0.0};    /*ハミルトニアンの1次項*/
     double H[Nums] = {0.0};
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
     int Time = 1000000;
     double tau = 1.0;
-
-    /*H = - Σ J[i][j]q[i]q[j], -ついていることに注意*/
-    /* H = (HA+HB+HC) + penalty terms*/
-    /* HA =  - Σ payoff(i,j,k) xi yj zk = Σ -1*payoff(i,j,k)*q(i,j,k)*(xi+yj+zk -2 )*/
-    /* HA is a minus value of payoff for player 1*/
-    for (i = 0; i < N; i++)
-    {
-        for (j = 0; j < N; j++)
-        {
-            if (i != j)
-                J[i][j];
-        }
-    }
 
     /*時間発展*/
     time_evolution(f1, J, Time, B0, tau);

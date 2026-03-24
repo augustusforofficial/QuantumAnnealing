@@ -71,7 +71,7 @@ int main()
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
-    int Time = 1000000;
+    int Time = 1000;
     double tau = 1.0;
 
     /*数値シミュレーション上では J[i][j]はいらない。関数式そのものにすべての場合を代入すれば対角成分は計算可能である*/
@@ -105,12 +105,12 @@ int main()
 
         /*ペナルティ項の作成*/
         /*improve : Pen[index] の indexの形に拡張性がない。*/
-        Pen[0] += payoff_of_3_prisoners_dilemma(0, 0, y, z) ;
-        Pen[1] += payoff_of_3_prisoners_dilemma(0,1,y,z);
+        Pen[0] += payoff_of_3_prisoners_dilemma(0, 0, y, z);
+        Pen[1] += payoff_of_3_prisoners_dilemma(0, 1, y, z);
         Pen[2] += payoff_of_3_prisoners_dilemma(1, x, 0, z);
-        Pen[3] += payoff_of_3_prisoners_dilemma(1,x,1,z);
-        Pen[4] += payoff_of_3_prisoners_dilemma(2,x,y,0);
-        Pen[5] += payoff_of_3_prisoners_dilemma(2,x,y,1);
+        Pen[3] += payoff_of_3_prisoners_dilemma(1, x, 1, z);
+        Pen[4] += payoff_of_3_prisoners_dilemma(2, x, y, 0);
+        Pen[5] += payoff_of_3_prisoners_dilemma(2, x, y, 1);
 
         for (j = 0; j < num_pen; j++)
         {
@@ -138,7 +138,7 @@ int main()
 
         if (H[i] == 0)
         {
-            printf("i = %d\n",i);
+            printf("i = %d\n", i);
             printf("H0 = %d\n", (-1) * payoff_sum[x][y][z]);
             for (j = 0; j < num_pen; j++)
             {
@@ -150,17 +150,16 @@ int main()
 
     printf("finished");
 
-    // /*時間発展*/
-    // time_evolution(f1, J, Time, B0, tau);
+    /*時間発展*/
+    time_evolution_Hamiltonian(f1,H,Time,B0,tau);
 
-    // /*正規化.時間発展中で毎回行うのが実際だが、計算上は最後にまとめて行っても良い。*/
-    // normalize(f1);
-
-    // /*最終出力*/
-    // double p;
-    // for (int i = 0; i < Nums; i++)
-    // {
-    //     p = cabs(f1[i]) * cabs(f1[i]);
-    //     printf("%d : %f\n", i, p);
-    // }
+    /*最終出力*/
+    double p;
+    for (int i = 0; i < Nums; i++)
+    {
+        p = cabs(f1[i]) * cabs(f1[i]);
+        if (p > 0.01){
+            printf("%d : %f\n", i, p);
+        }
+    }
 }

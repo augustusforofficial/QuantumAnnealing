@@ -58,3 +58,17 @@ Claude Haiku 4.5 • 1x
     ```C
     memset(payoff_sum, 0, sizeof(payoff_sum));
     ```
+
+## Linux
+- exportは実行時のコマンド、ライブラリのパスを探索させる
+```shell
+    export PATH=/usr/local/cuda/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+```
+PATH : コマンド , LD_LIBRARY_PATH : ライブラリのパス
+" : " はそれにくっつけるだけ, $PATH で今までのPATHに追加することになる。
+
+
+
+## 研究
+3人囚人の最適は 2001448

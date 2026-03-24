@@ -68,9 +68,7 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
     }
 }
 
-/*時間発展*/
-void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0, double tau)
-{
+void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Time, double B0, double tau){
     double dt = tau / (double)Time;
     int time;
     double t;
@@ -82,9 +80,6 @@ void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0
         f0[i] = (1.0 / sqrt(Nums)) + 0.0 * I;
     }
 
-    /*ハミルトニアン対角成分の定義*/
-    double H[Nums] = {0.0};
-    embed_diagonal_H(H, J);
     /*時間発展関数化 (f0,f1)を入れたら、それを変更したい。*/
     for (time = 0; time < Time; time++)
     {
@@ -131,6 +126,18 @@ void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0
         //  printf("\n");
     }
 }
+
+/*時間発展*/
+void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0, double tau)
+{
+    /*ハミルトニアン対角成分の定義*/
+    double H[Nums] = {0.0};
+    embed_diagonal_H(H, J);
+    
+    /*ハミルトニアンの対角項を渡して計算させる*/
+    time_evolution_Hamiltonian(f1,H,Time,B0,tau);
+}
+
 
 /*正規化*/
 void normalize(double complex psi[Nums])

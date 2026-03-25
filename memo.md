@@ -1,6 +1,6 @@
 # gitの使い方メモ
 ## ローカル
-```
+```shell
 # リポジトリ作成
 git init
 
@@ -14,7 +14,7 @@ git commit -m "message"
 ```
 
 ## リモート
-```
+```shell
 #GitHubリポジトリ登録
 git remote add origin [URL]
 
@@ -49,6 +49,10 @@ python3 scripts/plot_annealing.py new_template --threshold 0.01
 ```shell
 python3 scripts/plot_annealing.py new_template --top 20 -o result.png
 ```
+CUDA ver : 
+```shell
+python3 scripts/plot_cuBLAS_annealing.py [--output plot.png] [--threshold 0.01] [--top 20]
+```
 
 Claude Haiku 4.5 • 1x
 
@@ -61,14 +65,18 @@ Claude Haiku 4.5 • 1x
 
 ## Linux
 - exportは実行時のコマンド、ライブラリのパスを探索させる
-```shell
+    ```shell
     export PATH=/usr/local/cuda/bin:$PATH
     export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-```
+    ```
 PATH : コマンド , LD_LIBRARY_PATH : ライブラリのパス
 " : " はそれにくっつけるだけ, $PATH で今までのPATHに追加することになる。
 
-
+## CUDA
+- 実行コマンド
+``` shell
+    nvcc src/cuBLAS_new_template.cu src/cuBLAS_annealing_util.cu -o bin/cuBLAS_new_template -lcublas
+```
 
 ## 研究
 3人囚人の最適は 2001448

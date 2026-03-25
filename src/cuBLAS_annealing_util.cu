@@ -51,7 +51,7 @@ int hamDistance(int i, int j)
 
 /*ハミルトニアン対角埋め込み*/
 /*iBitNumの切り替えで読み方を変更可能*/
-void embed_diagonal_H(double H[Nums], double J[N][N])
+void embed_diagonal_H(double *H, double J[N][N])
 {
     int i, j, k;
     /*対角成分の初期化*/
@@ -69,23 +69,23 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
 }
 
 /* CUDA kernels */
-__global__ void diagonal_kernel(cuDoubleComplex *f1, cuDoubleComplex *f0, double *H, double At, double dt, int Nums)
+__global__ void diagonal_kernel(cuDoubleComplex *f1, cuDoubleComplex *f0, double *H, double At, double dt, int num_states)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < Nums)
+    if (i < num_states)
     {
         cuDoubleComplex coeff = make_cuDoubleComplex(1.0, -0.5 * H[i] * At * dt);
         f1[i] = cuCmul(coeff, f0[i]);
     }
 }
 
-__global__ void off_diagonal_kernel(cuDoubleComplex *f1, cuDoubleComplex *f0, double Bt, double dt, int N, int Nums)
+__global__ void off_diagonal_kernel(cuDoubleComplex *f1, cuDoubleComplex *f0, double Bt, double dt, int num_bits, int num_states)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < Nums)
+    if (i < num_states)
     {
         cuDoubleComplex coeff = make_cuDoubleComplex(0.0, -Bt * dt);
-        for (int bit = 0; bit < N; bit++)
+        for (int bit = 0; bit < num_bits; bit++)
         {
             int j = i ^ (1 << bit);
             f1[i] = cuCadd(f1[i], cuCmul(coeff, f0[j]));
@@ -93,7 +93,7 @@ __global__ void off_diagonal_kernel(cuDoubleComplex *f1, cuDoubleComplex *f0, do
     }
 }
 
-__global__ void normalize_kernel(cuDoubleComplex *f, double norm, int Nums)
+__global__ void normalize_kernel(cuDoubleComplex *f, double norm, int num_states)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < Nums)
@@ -168,39 +168,44 @@ void time_evolution_Hamiltonian_cu(cuDoubleComplex *h_f1, double *H, int Time, d
 void time_evolution_cu(cuDoubleComplex *f1, double J[N][N], int Time, double B0, double tau)
 {
     /*ハミルトニアン対角成分の定義*/
-    double H[Nums] = {0.0};
+    double *H = (double *)malloc(Nums * sizeof(double));
+    memset(H, 0, Nums * sizeof(double));
     embed_diagonal_H(H, J);
     
     /*ハミルトニアンの対角項を渡して計算させる*/
     time_evolution_Hamiltonian_cu(f1, H, Time, B0, tau);
+    free(H);
 }
 
 /*正規化 - for host data*/
-void normalize(double complex psi[Nums])
+void normalize(cuDoubleComplex psi[Nums])
 {
     double abs_f1 = 0.0;
     for (int i = 0; i < Nums; i++)
     {
-        abs_f1 += cabs(psi[i]) * cabs(psi[i]);
+        double real = cuCreal(psi[i]);
+        double imag = cuCimag(psi[i]);
+        abs_f1 += real * real + imag * imag;
     }
     abs_f1 = sqrt(abs_f1);
     for (int i = 0; i < Nums; i++)
     {
-        psi[i] = psi[i] / abs_f1;
+        psi[i] = cuCdiv(psi[i], make_cuDoubleComplex(abs_f1, 0.0));
     }
 }
 
 /*結果の出力*/
-void print_state(double complex psi[Nums])
+void print_state(cuDoubleComplex psi[Nums])
 {
     double p;
     for (int i = 0; i < Nums; i++)
     {
-        printf("%f + %f * I\n", creal(psi[i]), cimag(psi[i]));
+        printf("%f + %f * I\n", cuCreal(psi[i]), cuCimag(psi[i]));
     }
     for (int i = 0; i < Nums; i++)
     {
-        p = cabs(psi[i]) * cabs(psi[i]);
+        double abs_val = cuCabs(psi[i]);
+        p = abs_val * abs_val;
         printf("%d : %f\n", i, p);
     }
 }

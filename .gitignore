@@ -1,1 +1,26 @@
-*
+# ===== Python =====
+__pycache__/
+*.pyc
+
+# ===== 仮想環境 =====
+.venv/
+env/
+
+# ===== ビルド =====
+bin/
+*.o
+*.out
+
+# ===== 実験生成物 =====
+experiments/output/
+results/
+
+# ===== 画像（選択制） =====
+# plot.png は状況次第（後述）
+
+# ===== エディタ =====
+.vscode/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db

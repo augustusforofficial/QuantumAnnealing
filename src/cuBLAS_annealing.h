@@ -27,7 +27,11 @@ void embed_diagonal_H(double *H, double J[N][N]);
 void time_evolution_Hamiltonian_cu(cuDoubleComplex *f1, double *H, int Time, double B0, double tau);
 
 /*Time Evolution*/
-void time_evolution_cu(cuDoubleComplex f1[Nums], double J[N][N], int Time, double B0, double tau);
+void time_evolution_cu(cuDoubleComplex f1[Nums], double J[N][N], int Time
+    
+    
+    
+    , double B0, double tau);
 
 /*normalize - CPU version for host data*/
 void normalize(cuDoubleComplex psi[Nums]);

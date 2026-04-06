@@ -27,6 +27,27 @@
 				"isDefault": true
 			},
 			"detail": "Compiler: /usr/bin/gcc (WSL Ubuntu)"
+		},
+		{
+			"type": "cppbuild",
+			"label" : "C/C++ nvcc (WSL)",
+			"command": "/usr/local/cuda/bin/nvcc",
+			"args" : [
+				"-std=c++17",	//nvccでは結局gccなどを利用するので、その指定
+				"-g",	// デバッグ情報の埋め込み（実行ファイルに変数名、行番号を残す）
+				"${file}",
+				"-o",
+				"${workspaceFolder}/bin/${fileBasenameNoExtension}",
+				"-lcublas"
+			],
+			"options" :{
+				"cwd" : "${fileDirname}"	//cwd : コンパイル時のカレントディレクトリを明示指定
+			},
+			"problemMatcher" : ["$gcc"],	//problemMathce : コンパイルエラー出力形式の指定。VSCodeの解析用
+			"group" : {
+				"kind" : "build",
+				"isDefault": true	// ビルドタスクとしての登録。ctrl + shift + B で自動で呼ばれるようになる。
+			}
 		}
 	]
 }

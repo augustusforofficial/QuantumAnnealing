@@ -2,7 +2,9 @@
     "configurations": [
         {
             "name": "WSL-Ubuntu",
+            // #include で探しに行くフォルダ
             "includePath": [
+                "/usr/local/cuda/include",
                 "${workspaceFolder}/**"
             ],
             "defines": [],

@@ -155,34 +155,32 @@ int main()
     cuDoubleComplex beta = make_cuDoubleComplex(1.0, 0.0);
     cublasZgeam(handle, CUBLAS_OP_N, CUBLAS_OP_N, dim, dim, &alpha, d_Identity_right_0_projection, dim, &beta, d_X_right_1_projection, dim, d_CNOT_to_left, dim);
     
-    cuDoubleComplex vector[dim];
-    char label[] = "test";
     // Hadamardゲートを作用させる
     alpha = make_cuDoubleComplex(1.0, 0.0);
     beta = make_cuDoubleComplex(0.0, 0.0);
     cublasZgemv(handle, CUBLAS_OP_N, dim, dim, &alpha, d_Hadamard_qubit, dim, d_vec, 1, &beta, d_vec_2, 1);
-    // リセット
-    cublasZcopy(handle, dim, d_vec_2, 1, d_vec, 1);
-    cublasSetVector(dim, sizeof(cuDoubleComplex), h_vec_2, 1, d_vec_2, 1);
-    cublasGetVector(dim, sizeof(cuDoubleComplex), d_vec, 1, vector, 1);
-    show_vector(vector, dim, label);
+    // d_vec <=> d_vec_2 の入れ替え
+    cuDoubleComplex *tmp = d_vec;
+    d_vec = d_vec_2;
+    d_vec_2 = tmp;
+
     // CNOTゲート作用
     alpha = make_cuDoubleComplex(1.0, 0.0);
     beta = make_cuDoubleComplex(0.0, 0.0);
     cublasZgemv(handle, CUBLAS_OP_N, dim, dim, &alpha, d_CNOT_to_left, dim, d_vec, 1, &beta, d_vec_2, 1);
-    // リセット
-    cublasZcopy(handle, dim, d_vec_2, 1, d_vec, 1);
-    cublasSetVector(dim, sizeof(cuDoubleComplex), h_vec_2, 1, d_vec_2, 1);
-    cublasGetVector(dim, sizeof(cuDoubleComplex), d_vec, 1, vector, 1);
-    show_vector(vector, dim, label);
+    // d_vec <=> d_vec_2 の入れ替え
+    tmp = d_vec;
+    d_vec = d_vec_2;
+    d_vec_2 = tmp;
+
     // Hadamardゲートの作用
     alpha = make_cuDoubleComplex(1.0, 0.0);
     beta = make_cuDoubleComplex(0.0, 0.0);
     cublasZgemv(handle, CUBLAS_OP_N, dim, dim, &alpha, d_Hadamard_qubit, dim, d_vec, 1, &beta, d_vec_2, 1);
-    // リセット(d_vec_2 はリセットしない)
-    cublasZcopy(handle, dim, d_vec_2, 1, d_vec, 1);
-    cublasGetVector(dim, sizeof(cuDoubleComplex), d_vec, 1, vector, 1);
-    show_vector(vector, dim, label);
+    // d_vec <=> d_vec_2 の入れ替え
+    tmp = d_vec;
+    d_vec = d_vec_2;
+    d_vec_2 = tmp;
 
 // STEP6.  GPU => CPU
     cuDoubleComplex result[dim];

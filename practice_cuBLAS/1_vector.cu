@@ -29,7 +29,7 @@ int main(){
     cuDoubleComplex result; //CPUの変数
     cublasZdotc(handle, N, d_vec, 1, d_vec, 1, &result);    //incx, incy = 1 : 何個飛ばしか. k = 1 + (i-1) * incx
 
-    // double
+    // 
     double norm = cuCreal(result);
     printf("norm = %f\n", norm);
     

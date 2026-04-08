@@ -35,7 +35,7 @@ int main(){
     cublasSetVector(N, sizeof(cuDoubleComplex), h_vec, 1, d_vec, 1);
     cublasSetVector(N * N, sizeof(cuDoubleComplex), h_U, 1, d_U, 1);
 
-    // 
+    // 行列とベクトルの積のためのパラメータ宣言
     cuDoubleComplex alpha = make_cuDoubleComplex(1.0, 0.0);
     cuDoubleComplex beta = make_cuDoubleComplex(0.0, 0.0);
 
@@ -49,10 +49,11 @@ int main(){
 
     printf("result = (%f,%f) , (%f,%f)\n", cuCreal(result[0]), cuCimag(result[0]), cuCreal(result[1]), cuCimag(result[1]));
 
-    // メモリ開放
+    // メモリ開放 + Destroy
     cudaFree(d_U);
     cudaFree(d_vec);
     cudaFree(d_out);
+    cublasDestroy(handle);
 
     return 0;
 }

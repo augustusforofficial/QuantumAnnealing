@@ -53,16 +53,17 @@ int hamDistance(int i, int j)
 /*iBitNumの切り替えで読み方を変更可能*/
 void embed_diagonal_H(double H[Nums], double J[N][N])
 {
-    int i, j, k;
+    int candidate_num, j, k;
     /*対角成分の初期化*/
     /*問題によって異なる*/
-    for (i = 0; i < Nums; i++)
+    for (candidate_num = 0; candidate_num < Nums; candidate_num++)
     {
-        for (j = 0; j < N; j++)
+        for (j = 0; j < N;
+            j++)
         {
             for (k = j + 1; k < N; k++)
             {
-                H[i] += (2 * iBitNumRight(i, j) - 1) * (2 * iBitNumRight(i, k) - 1) * J[j][k];
+                H[candidate_num] += (2 * iBitNumRight(candidate_num, j) - 1) * (2 * iBitNumRight(candidate_num, k) - 1) * J[j][k];
             }
         }
     }
@@ -137,7 +138,6 @@ void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0
     /*ハミルトニアンの対角項を渡して計算させる*/
     time_evolution_Hamiltonian(f1,H,Time,B0,tau);
 }
-
 
 /*正規化*/
 void normalize(double complex psi[Nums])

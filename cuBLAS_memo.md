@@ -34,3 +34,6 @@ cublasDestroy()
 | cuComplex | c or C| complex single-precision|
 | cuDoubleComplex | z or Z| complex double-precision|
 
+
+## その他
+- cuDoubleComplex は 16 B (128 bit)

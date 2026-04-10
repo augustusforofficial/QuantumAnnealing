@@ -37,6 +37,7 @@ int iBitNumRight(int d, int i)
 
 /*iとjの2進数でのハミング距離を返却*/
 /*Brian Kernighanのアルゴリズム*/
+/* O(logN) */
 int hamDistance(int i, int j)
 {
     int count = 0;

@@ -5,8 +5,10 @@
 #include <complex.h>
 #include <math.h>
 
-#define N 21
-#define Nums 2097152
+#define N 3
+/*21*/
+#define Nums 8
+/*2097152*/
 
 /*utility*/
 int int_pow(int base, int exp);

@@ -4,8 +4,9 @@
 #include <cuComplex.h>
 #include <math.h>
 
-#define N 21
-#define Nums 2097152
+#define N 10
+#define Nums 1024
+/* 16:65536 , */
 
 int iBitNumRight(int d, int i)
 {
@@ -24,7 +25,7 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
         {
             for (k = j + 1; k < N; k++)
             {
-                H[candidate_num] += (2 * iBitNumRight(candidate_num, j) - 1) * (2 * iBitNumRight(candidate_num, k) - 1) * J[j][k];
+                H[candidate_num] = (2 * iBitNumRight(candidate_num, j) - 1) * (2 * iBitNumRight(candidate_num, k) - 1) * J[j][k];
             }
         }
     }
@@ -62,7 +63,7 @@ void embed_T(cuDoubleComplex h_T[Nums][Nums], double diagonal_H[Nums], double At
 }
 
 cublasStatus_t cublas_normalize(cublasHandle_t handle, int dim, cuDoubleComplex *d_vec){
-    cublasStatus_t status;
+    cublasStatus_t status = CUBLAS_STATUS_SUCCESS;
 
     // improve : norm が CPUメモリ側の変数だから通信コストある
     double norm;
@@ -82,24 +83,18 @@ cublasStatus_t cublas_normalize(cublasHandle_t handle, int dim, cuDoubleComplex 
     return CUBLAS_STATUS_SUCCESS;
 }
 
-cublasStatus_t cublas_time_evolution(cublasHandle_t handle, cuDoubleComplex* f0 ,cuDoubleComplex* f1 , double J[N][N], int Time, double B0, double tau){
+cublasStatus_t cublas_time_evolution_Hamiltonian(cublasHandle_t handle,cuDoubleComplex *d_T, cuDoubleComplex *f0, cuDoubleComplex *f1, double diagonal_H[Nums], int Time, double B0, double tau){
     double dt = tau / (double)Time;
     int time;
     double t;
     /*時間発展での行列積のためのハイパーパラメータ*/
     cuDoubleComplex alpha = make_cuDoubleComplex(1.0,0.0);
     cuDoubleComplex beta = make_cuDoubleComplex(0.0,0.0);
-    cublasStatus_t status;
+    cublasStatus_t status = CUBLAS_STATUS_SUCCESS;
     cuDoubleComplex *tmp; // (f0,f1入れ替え用) 
 
     /* improve : Tを行列として保持しているが、これを都度計算にしてスレッド並列化するほうが絶対に良い。*/
     cuDoubleComplex h_T[Nums][Nums];
-    cuDoubleComplex *d_T;
-    cudaMalloc((void**) &d_T, Nums * Nums * sizeof(cuDoubleComplex));
-
-    /* improve : J[N][N] => H[Nums] の埋め込みを並列化 + H[Nums]をGPU上で保持 */
-    double diagonal_H[Nums];
-    embed_diagonal_H(diagonal_H, J);
 
     /*時間発展関数化 (f0,f1)を入れたら、それを変更したい。*/
     for (time = 0; time < Time; time++)
@@ -129,6 +124,17 @@ cublasStatus_t cublas_time_evolution(cublasHandle_t handle, cuDoubleComplex* f0 
     return status;
 }
 
+cublasStatus_t cublas_time_evolution(cublasHandle_t handle, cuDoubleComplex *d_T, cuDoubleComplex* f0 ,cuDoubleComplex* f1 , double J[N][N], int Time, double B0, double tau){
+    /* improve : J[N][N] => H[Nums] の埋め込みを並列化 + H[Nums]をGPU上で保持 */
+    double diagonal_H[Nums];
+    embed_diagonal_H(diagonal_H, J);
+    
+    cublasStatus_t status;
+    status = cublas_time_evolution_Hamiltonian(handle, d_T, f0, f1, diagonal_H, Time, B0, tau);
+
+    return status;
+}
+
 void show_vector(cuDoubleComplex *vec, int dim, char label[]){
     printf("%s\n", label);
     double probablicity = 0.0;
@@ -140,10 +146,9 @@ void show_vector(cuDoubleComplex *vec, int dim, char label[]){
 
 int main(){
 // 1. CPUメモリにおける変数宣言
-
     int i,j;
     // 定数宣言
-    int ni[N] = {2,3,5};
+    int ni[N] = {1,3,5,7,9,11,13,15,17,19};
     double J[N][N] = {0.0};
     cuDoubleComplex h_f0[Nums];
     for (i=0;i<Nums;i++){
@@ -167,15 +172,16 @@ int main(){
     cublasCreate(&handle);
 
 // 3. GPUメモリにおける変数宣言
-    cuDoubleComplex *d_f0,*d_f1;
+    cuDoubleComplex *d_f0,*d_f1,*d_T;
     cudaMalloc((void**) &d_f0, Nums * sizeof(cuDoubleComplex));
     cudaMalloc((void**) &d_f1, Nums * sizeof(cuDoubleComplex));
+    cudaMalloc((void**) &d_T, Nums * Nums * sizeof(cuDoubleComplex));
 
 // 4. CPU => GPU
     cublasSetVector(Nums, sizeof(cuDoubleComplex), h_f0, 1, d_f0, 1);
 
 // 5. GPU計算
-    cublas_time_evolution(handle,d_f0,d_f1,J,Time,B0,tau);
+    cublas_time_evolution(handle,d_T,d_f0,d_f1,J,Time,B0,tau);
 
 // 6. GPUメモリ => CPUメモリ
     cublasGetVector(Nums, sizeof(cuDoubleComplex), d_f0, 1, h_f0, 1);

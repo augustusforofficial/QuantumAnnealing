@@ -121,11 +121,13 @@ void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Tim
         normalize(f0);
 
         // 時間発展出力用
-        //  printf("%dth\n f0",time);
-        //  for(i=0;i<Nums;i++){
-        //      printf("%f + %f * I\n",creal(f1[i]),cimag(f1[i]));
-        //  }
-        //  printf("\n");
+        if(time % 1000 == 0){
+            printf("%dth\n",time);
+        } 
+         for(int i=0;i<Nums;i++){
+             printf("%f + %f * I\n",creal(f1[i]),cimag(f1[i]));
+         }
+         printf("\n");
     }
 }
 

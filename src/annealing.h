@@ -5,9 +5,9 @@
 #include <complex.h>
 #include <math.h>
 
-#define N 3
+#define N 21
 /*21*/
-#define Nums 8
+#define Nums 2097152
 /*2097152*/
 
 /*utility*/

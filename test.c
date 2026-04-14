@@ -1,10 +1,33 @@
 #include <stdio.h>
-#include <stdlib.h>
+
+void print_binary(unsigned int x){
+    if(x == 0){
+        printf("0");
+        return;
+    }
+
+    int started = 0;
+
+    for(int i = 31; i >= 0; i--){
+        if((x >> i) & 1){
+            started = 1;
+        }
+
+        if(started){
+            printf("%d", (x >> i) & 1);
+        }
+    }
+}
 
 int main(){
-   char str[] = "111000000000000000000";
+    unsigned int n;
 
-   long long result = strtoll(str,NULL,2);
+    printf("10進数を入力してください: ");
+    scanf("%u", &n);
 
-   printf("%lld\n",result);
+    printf("2進数: ");
+    print_binary(n);
+    printf("\n");
+
+    return 0;
 }

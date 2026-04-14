@@ -13,6 +13,7 @@ int iBitNumRight(int d, int i)
     return (d >> i) & 1;
 }
 
+/* improve : ここも GPU*/
 void embed_diagonal_H(double H[Nums], double J[N][N])
 {
     int candidate_num, j, k;

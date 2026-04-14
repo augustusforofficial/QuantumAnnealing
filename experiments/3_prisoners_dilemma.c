@@ -71,7 +71,7 @@ int main()
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
-    int Time = 1000;
+    int Time = 10000;
     double tau = 1.0;
 
     /*数値シミュレーション上では J[i][j]はいらない。関数式そのものにすべての場合を代入すれば対角成分は計算可能である*/
@@ -82,6 +82,7 @@ int main()
     int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
     int H0 = 0;                            /*目的関数部分のハミルトニアン関数 H0(q0,q1,q2)（演算子ではない。）*/
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
+    const double hypers[] = {1.0, 1.0, 1.0}; /*制約項のハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
     const int num_slack = 3;               /*各ペナルティ項におけるスラック変数の個数*/
     const int start_slack = 3;             /*スラックが始まるインデックス番号*/
@@ -131,12 +132,12 @@ int main()
         for (j = 0; j < num_pen; j++)
         {
             Pen[j] = Pen[j] * Pen[j];
-            H[i] += Pen[j];
+            H[i] += hypers[(int) j/2] * Pen[j];
         }
 
         H[i] = H[i] + alpha + beta + gamma;
 
-        if (H[i] == 0)
+        if (H[i] <= 0)
         {
             printf("i = %d\n", i);
             printf("H0 = %d\n", (-1) * payoff_sum[x][y][z]);
@@ -148,10 +149,10 @@ int main()
         }
     }
 
-    printf("finished");
-
     /*時間発展*/
     time_evolution_Hamiltonian(f1,H,Time,B0,tau);
+
+    printf("finished\n");
 
     /*最終出力*/
     double p;

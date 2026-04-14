@@ -1,141 +1,73 @@
 #!/usr/bin/env python3
-"""Plot amplitudes/probabilities produced by a quantum annealing C executable.
+"""Fast plotting for quantum annealing results using binary I/O.
 
-The C program (like ``new_templete.c``) prints complex amplitudes and then
-lines of the form
+Instead of parsing millions of printf lines, the C executable should write
+probabilities directly to a binary file:
 
-    0 : 0.015625
-    1 : 0.125000
-    ...
+    FILE *fp = fopen("result.bin", "wb");
+    fwrite(f1, sizeof(double complex), Nums, fp);
+    fclose(fp);
 
-where the integer index is the state (0..2^n-1) and the floating point value
-is the probability (|amplitude|^2).
-
-This script runs the executable, parses the probability lines, and draws a bar
-chart using matplotlib.  The horizontal axis is the state index and the vertical
-axis is the probability.
-
-Usage::
-
-    python3 plot_annealing.py executable_name [--output plot.png] [--threshold 0.01] [--top 20]
-
-The executable is expected to be in the 'bin' directory.
-
-Options:
-  --output, -o:   Output file path (default: plot.png)
-  --threshold:    Only show states with probability >= threshold
-  --top N:        Show only top N states with highest probabilities
+This script reads that binary file directly and plots either top-N states
+or states above a threshold.
 """
 
 import argparse
-import os
-import subprocess
-import sys
-
-import matplotlib
-matplotlib.use('Agg')  # Use non-GUI backend
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 
-def read_probabilities_from_executable(exe_path: str) -> np.ndarray:
-    """Run the given executable and extract probability values.
-
-    The executable is expected to write lines containing ``<index> : <prob>`` to
-    stdout.  Only the probability values are returned as a NumPy array ordered
-    by index.
-    """
-    proc = subprocess.run([exe_path], capture_output=True, text=True)
-    if proc.returncode != 0:
-        raise RuntimeError(f"executable failed with code {proc.returncode}: {proc.stderr}")
-
-    probs = []
-    for line in proc.stdout.splitlines():
-        # look for the lines "i : p" at the end of print_state
-        if ":" not in line:
-            continue
-        parts = line.split(":")
-        if len(parts) < 2:
-            continue
-        try:
-            idx = int(parts[0].strip())
-            p = float(parts[1].strip())
-        except ValueError:
-            # skip lines that are not formatted as expected
-            continue
-        # ensure list is large enough
-        if idx >= len(probs):
-            probs.extend([0.0] * (idx + 1 - len(probs)))
-        probs[idx] = p
-    return np.array(probs)
+def read_complex_binary(filepath: str) -> np.ndarray:
+    """Read complex128 state vector from binary file."""
+    psi = np.fromfile(filepath, dtype=np.complex128)
+    if psi.size == 0:
+        raise RuntimeError(f"No data found in {filepath}")
+    probs = psi.real * psi.real + psi.imag * psi.imag
+    return probs
 
 
-def plot_probabilities(probs: np.ndarray, output: str = None, threshold: float = None, top_n: int = None):
-    """Draw a bar chart of the probabilities.
-
-    ``probs`` is a 1D array containing probabilities for states 0..len(probs)-1.
-    
-    Args:
-        probs: Array of probabilities
-        output: Output file path. If None, save to 'plot.png'
-        threshold: Only show states with probability >= threshold
-        top_n: Show only top N states with highest probabilities
-    """
+def plot_probabilities(probs: np.ndarray, output: str, threshold: float = None, top_n: int = None):
     states = np.arange(probs.size)
-    
-    # Filter by threshold or top_n
-    if threshold is not None:
+
+    if top_n is not None:
+        top_n = min(top_n, probs.size)
+        idx = np.argpartition(probs, -top_n)[-top_n:]
+        filtered_states = states[idx]
+        filtered_probs = probs[idx]
+    elif threshold is not None:
         mask = probs >= threshold
         filtered_states = states[mask]
         filtered_probs = probs[mask]
-    elif top_n is not None:
-        top_indices = np.argsort(probs)[-top_n:]
-        filtered_states = states[top_indices]
-        filtered_probs = probs[top_indices]
     else:
         filtered_states = states
         filtered_probs = probs
-    
-    # Sort by probability for better visualization
-    sorted_indices = np.argsort(filtered_probs)
-    sorted_states = filtered_states[sorted_indices]
-    sorted_probs = filtered_probs[sorted_indices]
-    
-    # Use square figure
-    plt.figure(figsize=(8, 8))
-    plt.bar(range(len(sorted_probs)), sorted_probs, width=0.8)
+
+    order = np.argsort(filtered_probs)[::-1]
+    filtered_states = filtered_states[order]
+    filtered_probs = filtered_probs[order]
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(range(len(filtered_probs)), filtered_probs)
+    plt.xticks(range(len(filtered_states)), filtered_states, rotation=45)
     plt.xlabel("State index")
     plt.ylabel("Probability")
     plt.title("Quantum Annealing State Probabilities")
-    plt.xticks(range(len(sorted_probs)), sorted_states, rotation=45, fontsize=10)
     plt.tight_layout()
-    
-    if output:
-        plt.savefig(output)
-        print(f"Saved plot to {output}")
-    else:
-        output_file = "plot.png"
-        plt.savefig(output_file)
-        print(f"Saved plot to {output_file}")
+    plt.savefig(output)
+    print(f"Saved plot to {output}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot probabilities from a quantum annealing executable.")
-    parser.add_argument("exe_name", help="Name of the compiled C executable in the 'bin' directory that prints state probabilities.")
-    parser.add_argument("--output", "-o", help="Output file path (default: plot.png).")
-    parser.add_argument("--threshold", type=float, help="Only show states with probability >= threshold.")
-    parser.add_argument("--top", type=int, help="Show only top N states with highest probabilities.")
+    parser = argparse.ArgumentParser(description="Plot annealing result from binary complex state vector")
+    parser.add_argument("binary_file", help="Binary file written by C executable")
+    parser.add_argument("--output", "-o", default="plot.png")
+    parser.add_argument("--threshold", type=float)
+    parser.add_argument("--top", type=int, default=20)
     args = parser.parse_args()
 
-    exe_path = os.path.join("bin", args.exe_name)
-    if not os.path.isfile(exe_path):
-        print(f"Executable not found: {exe_path}", file=sys.stderr)
-        sys.exit(1)
-
-    probs = read_probabilities_from_executable(exe_path)
-    if probs.size == 0:
-        print("No probabilities were found in the executable output.", file=sys.stderr)
-        sys.exit(1)
+    probs = read_complex_binary(args.binary_file)
     plot_probabilities(probs, args.output, threshold=args.threshold, top_n=args.top)
 
 

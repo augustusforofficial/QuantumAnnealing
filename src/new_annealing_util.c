@@ -128,11 +128,11 @@ int main(void)
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
-    int Time = 10000;
+    int Time = 1000000;
     double tau = 1.0;
 
     int alpha = -5, beta = -5, gamma = -5;
-    const double hypers[3] = {1.0, 1.0, 1.0};
+    const double hypers[3] = {3.0, 3.0, 3.0};
     const int num_pen = 6;
     const int num_slack = 3;
     const int start_slack = 3;
@@ -179,7 +179,7 @@ int main(void)
     time_evolution_Hamiltonian(f1, H, Time, B0, tau);
 
     printf("finished\n");
-    FILE *fp = fopen("result.bin", "wb");
+    FILE *fp = fopen("./results/result.bin", "wb");
     fwrite(f1, sizeof(double complex), Nums, fp);
     fclose(fp);
 

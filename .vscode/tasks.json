@@ -30,6 +30,34 @@
 		},
 		{
 			"type": "cppbuild",
+			"label": "C/C++: gcc OpenMP (WSL)",
+			"command": "/usr/bin/gcc",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-fopenmp",
+				"-g",
+				"${file}",
+				"${workspaceFolder}/src/annealing_util.c",
+				"-I",
+				"${workspaceFolder}/src",
+				"-o",
+				"${workspaceFolder}/bin/${fileBasenameNoExtension}",
+				"-lm"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind" : "build",
+				"isDefault": true
+			},
+			"detail": "Compiler: /usr/bin/gcc (WSL Ubuntu)"
+		},
+		{
+			"type": "cppbuild",
 			"label" : "C/C++ nvcc (WSL)",
 			"command": "/usr/local/cuda/bin/nvcc",
 			"args" : [

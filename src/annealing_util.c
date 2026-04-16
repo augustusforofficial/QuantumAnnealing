@@ -57,10 +57,11 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
     int candidate_num, j, k;
     /*対角成分の初期化*/
     /*問題によって異なる*/
+
+    #pragma omp parallel for
     for (candidate_num = 0; candidate_num < Nums; candidate_num++)
     {
-        for (j = 0; j < N;
-            j++)
+        for (j = 0; j < N; j++)
         {
             for (k = j + 1; k < N; k++)
             {
@@ -76,7 +77,8 @@ void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Tim
     double t;
 
     /*f0の定義*/
-    double complex f0[Nums];
+    double complex *f0 = malloc(sizeof(double complex) * Nums);
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < Nums; i++)
     {
         f0[i] = (1.0 / sqrt(Nums)) + 0.0 * I;
@@ -94,10 +96,11 @@ void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Tim
         /*ついに時間発展 f1=T・f0*/
         /*improve : ここ行列ライブラリ使うのあり*/
         /*行列の代わりに変数を用意。これに都度代入を行う*/
-        double complex T_ij = 0.0 + 0.0 * I;
+        #pragma omp parallel for schedule(static)
         for (int i = 0; i < Nums; i++)
         {
-            f1[i] = 0;
+            double complex T_ij;
+            f1[i] = 0.0 + 0.0 * I;
 
             /*先に対角成分だけ足しこんで、そのあとに非対角成分も足しこむ*/
             /*まずは対角成分*/
@@ -112,19 +115,17 @@ void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Tim
                 f1[i] += T_ij * f0[j];
             }
         }
-        for (int i = 0; i < Nums; i++)
-        {
-            f0[i] = f1[i];
-        }
+        double complex *tmp = f0;
+        f0 = f1;
+        f1 = tmp;
         
-        /*時間毎に正規化しないとオーバーフローして -nan になってしまった*/
-        normalize(f0);
-
-        // 時間発展出力用
-        if(time % 1000 == 0){
-            printf("%dth\n",time);
-        } 
+        /* 近似によりノルムが保存されないため必要*/
+        if(time % 10 == 0){
+            normalize(f0);
+        }    
     }
+
+    free(f0);
 }
 
 /*時間発展*/
@@ -142,14 +143,20 @@ void time_evolution(double complex f1[Nums], double J[N][N], int Time, double B0
 void normalize(double complex psi[Nums])
 {
     double abs_f1 = 0.0;
+
+    #pragma omp parallel for reduction(+ : abs_f1)
     for (int i = 0; i < Nums; i++)
     {
-        abs_f1 += cabs(psi[i]) * cabs(psi[i]);
+        double re = creal(psi[i]);
+        double im = cimag(psi[i]);
+        abs_f1 += re * re + im * im;
     }
-    abs_f1 = sqrt(abs_f1);
+    double inv_norm = 1.0 / sqrt(abs_f1);
+
+    #pragma omp parallel for schedule(static)
     for (int i = 0; i < Nums; i++)
     {
-        psi[i] = psi[i] / abs_f1;
+        psi[i] *= inv_norm;
     }
 }
 

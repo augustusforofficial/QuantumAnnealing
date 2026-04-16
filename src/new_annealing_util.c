@@ -124,8 +124,8 @@ int main(void)
                 for (k = 0; k < 2; k++)
                     payoff_sum[i][j][k] += payoff_of_3_prisoners_dilemma(p, i, j, k);
 
-    double H[Nums] = {0.0};
-    double complex f1[Nums] = {0.0 + 0.0 * I};
+    double *H = malloc(Nums *  sizeof(double));
+    double complex *f1 = malloc(Nums * sizeof(double complex));
 
     double B0 = 1.0;
     int Time = 1000000;

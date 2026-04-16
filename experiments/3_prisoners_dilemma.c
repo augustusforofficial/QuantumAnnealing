@@ -65,14 +65,13 @@ int main()
 
     /* 2026/3/9,13 : 利得までOK*/
 
-    double J[N][N] = {};    /*ハミルトニアンの2次項*/
-    double h[N] = {0.0};    /*ハミルトニアンの1次項*/
-    double H[Nums] = {0.0}; /*ハミルトニアンの対角項*/
+    double J[N][N];    /*ハミルトニアンの2次項*/
+    double *H = malloc(sizeof(double) * Nums); /*ハミルトニアンの対角項*/
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
-    int Time = 100000;
-    double tau = 1.0;
+    int Time = 1000;
+    double tau = 2.0;
 
     /*数値シミュレーション上では J[i][j]はいらない。関数式そのものにすべての場合を代入すれば対角成分は計算可能である*/
     /* <0010|H^|0010> = H(0,0,1,0) ここで H^ は横磁場イジングモデルにおける作用素であることに注意。*/
@@ -82,7 +81,7 @@ int main()
     int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
     int H0 = 0;                            /*目的関数部分のハミルトニアン関数 H0(q0,q1,q2)（演算子ではない。）*/
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
-    const double hypers[] = {2.0, 2.0, 2.0}; /*制約項のハイパーパラメータ*/
+    const double hypers = 0.5;      /*制約項のハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
     const int num_slack = 3;               /*各ペナルティ項におけるスラック変数の個数*/
     const int start_slack = 3;             /*スラックが始まるインデックス番号*/
@@ -132,7 +131,7 @@ int main()
         for (j = 0; j < num_pen; j++)
         {
             Pen[j] = Pen[j] * Pen[j];
-            H[i] += hypers[(int) j/2] * Pen[j];
+            H[i] += hypers * Pen[j];
         }
 
         H[i] = H[i] + alpha + beta + gamma;
@@ -149,6 +148,14 @@ int main()
         }
     }
 
+    int min_index = 0;
+    for (i=0; i<Nums; i++){
+        if(H[i] < H[min_index]){
+            min_index = i;
+        }
+    }
+    printf("min_index = %d\n", min_index);
+
     /*時間発展*/
     time_evolution_Hamiltonian(f1,H,Time,B0,tau);
 
@@ -156,7 +163,7 @@ int main()
 
     /*最終出力*/
     double p;
-    FILE *fp = fopen("./results/3_prisoners_dilemma_result.bin", "wb");
+    FILE *fp = fopen("./results/3_prisoners_dilemma_result_time_1000.bin", "wb");
     fwrite(f1, sizeof(double complex), Nums, fp);
     fclose(fp);
 }

@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <complex.h>
 #include <math.h>
+#include <stdlib.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define N 21
 /*21*/

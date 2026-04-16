@@ -85,4 +85,5 @@ gcc -O3 -fopenmp -march=native ./src/new_annealing_util.c -lm -o ./bin/new_annea
 
 ## 研究
 3人囚人の最適は 2001448
-だけど 262163 ばかり出てくる
+だけど 262163, 262143 ばかり出てくる
+1307079

@@ -80,10 +80,12 @@ PATH : コマンド , LD_LIBRARY_PATH : ライブラリのパス
 
 ## Open MP
 ``` shell
-gcc -O3 -fopenmp -march=native ./src/new_annealing_util.c -lm -o ./bin/new_annealing_util
+ gcc -O3 -fopenmp -march=native ./experiments/3_prisoners_dilemma.c ./src/annealing_util.c -I./src -lm -o ./bin/3_prisoners_delemma_10000000
 ```
 
 ## 研究
 3人囚人の最適は 2001448
 だけど 262163, 262143 ばかり出てくる
-1307079
+1307079も
+
+Time = 10**7  : 必要時間 32h 程度

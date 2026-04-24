@@ -23,7 +23,7 @@
 				"$gcc"
 			],
 			"group": {
-				"kind" : "build",
+				"kind": "build",
 				"isDefault": true
 			},
 			"detail": "Compiler: /usr/bin/gcc (WSL Ubuntu)"
@@ -51,31 +51,44 @@
 				"$gcc"
 			],
 			"group": {
-				"kind" : "build",
+				"kind": "build",
 				"isDefault": true
 			},
 			"detail": "Compiler: /usr/bin/gcc (WSL Ubuntu)"
 		},
 		{
 			"type": "cppbuild",
-			"label" : "C/C++ nvcc (WSL)",
+			"label": "C/C++ nvcc (WSL)",
 			"command": "/usr/local/cuda/bin/nvcc",
-			"args" : [
-				"-std=c++17",	//nvccでは結局gccなどを利用するので、その指定
-				"-g",	// デバッグ情報の埋め込み（実行ファイルに変数名、行番号を残す）
+			"args": [
+				"-std=c++17",
+				"-g",
 				"${file}",
 				"-o",
 				"${workspaceFolder}/bin/${fileBasenameNoExtension}",
 				"-lcublas"
 			],
-			"options" :{
-				"cwd" : "${fileDirname}"	//cwd : コンパイル時のカレントディレクトリを明示指定
+			"options": {
+				"cwd": "${fileDirname}"
 			},
-			"problemMatcher" : ["$gcc"],	//problemMathce : コンパイルエラー出力形式の指定。VSCodeの解析用
-			"group" : {
-				"kind" : "build",
-				"isDefault": true	// ビルドタスクとしての登録。ctrl + shift + B で自動で呼ばれるようになる。
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
 			}
+		},
+		{
+			"type": "cmake",
+			"label": "CMake: クリーンしてリビルド",
+			"command": "cleanRebuild",
+			"targets": [
+				"[N/A - キットの選択]"
+			],
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "CMake テンプレート クリーンしてリビルド タスク"
 		}
 	]
 }

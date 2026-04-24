@@ -71,7 +71,7 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
     }
 }
 
-void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Time, double B0, double tau){
+void time_evolution_Hamiltonian(double complex *f1, double *H, int Time, double B0, double tau){
     double dt = tau / (double)Time;
     int time;
     double t;
@@ -122,7 +122,11 @@ void time_evolution_Hamiltonian(double complex f1[Nums], double H[Nums], int Tim
         /* 近似によりノルムが保存されないため必要*/
         if(time % 10 == 0){
             normalize(f0);
-        }    
+        } 
+
+        if(time % 10000 == 0){
+            printf("%d th \n#",time);
+        }
     }
 
     free(f0);

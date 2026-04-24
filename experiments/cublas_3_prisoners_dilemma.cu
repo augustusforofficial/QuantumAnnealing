@@ -289,9 +289,7 @@ int main(){
             printf("H[%d] = %f\n", i, H[i]);
         }
     }
-
-    printf("finished");
-
+    
 // 2. GPUハンドルの宣言
     cublasHandle_t handle;
     cublasCreate(&handle);

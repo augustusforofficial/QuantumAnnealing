@@ -215,19 +215,11 @@ int main(){
 
     int x, y, z;                           /*戦略のバイナリ変数*/
     int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
-    int H0 = 0;                            /*目的関数部分のハミルトニアン関数 H0(q0,q1,q2)（演算子ではない。）*/
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
     const int num_slack = 3;               /*各ペナルティ項におけるスラック変数の個数*/
     const int start_slack = 3;             /*スラックが始まるインデックス番号*/
     int Pen[num_pen];                      /*各ペナルティ項*/
-
-    //J[i][j]の定義
-    for(i=0;i<N;i++){
-        for(j=0;j<N;j++){
-            J[i][j] = -1 * ni[i] * ni[j];
-        }
-    }
 
      /*qubit数 : 戦略3つ + スラック3個*6行=18個 の計21個*/
     for (i = 0; i < Nums; i++)
@@ -289,7 +281,7 @@ int main(){
             printf("H[%d] = %f\n", i, H[i]);
         }
     }
-    
+
 // 2. GPUハンドルの宣言
     cublasHandle_t handle;
     cublasCreate(&handle);

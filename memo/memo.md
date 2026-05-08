@@ -80,7 +80,7 @@ PATH : コマンド , LD_LIBRARY_PATH : ライブラリのパス
 
 ## Open MP
 ``` shell
- gcc -O3 -fopenmp -march=native ./experiments/3_prisoners_dilemma.c ./src/annealing_util.c -I./src -lm -o ./bin/3_prisoners_delemma_10000000
+ gcc -O3 -fopenmp -march=native ./experiments/3_prisoners_dilemma.c ./src/annealing_util.c -I./src -lm -o ./bin/3_prisoners_dilemma_10000000
 ```
 
 ## 研究

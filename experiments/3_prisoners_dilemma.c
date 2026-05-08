@@ -77,7 +77,6 @@ int main()
 
     int x, y, z;                           /*戦略のバイナリ変数*/
     int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
-    int H0 = 0;                            /*目的関数部分のハミルトニアン関数 H0(q0,q1,q2)（演算子ではない。）*/
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
     const double hypers = 2.0;      /*制約項のハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
@@ -155,13 +154,13 @@ int main()
     printf("min_index = %d\n", min_index);
 
     /*時間発展*/
-    time_evolution_Hamiltonian(f1,H,Time,B0,tau);
+    // time_evolution_Hamiltonian(f1,H,Time,B0,tau);
 
-    printf("finished\n");
+    // printf("finished\n");
 
     /*最終出力*/
     double p;
-    FILE *fp = fopen("./results/3_prisoners_dilemma_result_time_1.bin", "wb");
+    FILE *fp = fopen("./3_prisoners_dilemma_Hamiltonian_check.bin", "wb");
     fwrite(f1, sizeof(double complex), Nums, fp);
     fclose(fp);
 }

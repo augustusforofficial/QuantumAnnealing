@@ -161,6 +161,6 @@ int main()
     /*最終出力*/
     double p;
     FILE *fp = fopen("./3_prisoners_dilemma_Hamiltonian_check.bin", "wb");
-    fwrite(H, sizeof(double complex), Nums, fp);
+    fwrite(H, sizeof(double), Nums, fp);
     fclose(fp);
 }

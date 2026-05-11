@@ -9,10 +9,11 @@
 #include <omp.h>
 #endif
 
-#define N 21
-/*21*/
-#define Nums 2097152
-/*2097152*/
+/* 3_prisoners_dilemma : N=21, Nums = 2097152*/
+/* CFmMIMO : N=18, Nums= 262144*/
+
+#define N 18
+#define Nums 262144
 
 /*utility*/
 int int_pow(int base, int exp);

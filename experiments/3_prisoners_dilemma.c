@@ -78,7 +78,7 @@ int main()
     int x, y, z;                           /*戦略のバイナリ変数*/
     int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
-    const double hypers = 2.0;      /*制約項のハイパーパラメータ*/
+    const double hypers = 1.0;      /*制約項のハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
     const int num_slack = 3;               /*各ペナルティ項におけるスラック変数の個数*/
     const int start_slack = 3;             /*スラックが始まるインデックス番号*/
@@ -152,6 +152,15 @@ int main()
         }
     }
     printf("min_index = %d\n", min_index);
+
+    int count = 0;
+    for(i=0;i<Nums;i++){
+        if(H[i] <= 2.0){
+            count += 1;
+            printf("H[%d] = %f\n",i,H[i]);
+        }
+    }
+    printf("count = %d\n", count);
 
     /*時間発展*/
     // time_evolution_Hamiltonian(f1,H,Time,B0,tau);

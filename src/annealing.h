@@ -24,6 +24,9 @@ int iBitNumLeft(int d,int i);
 int iBitNumRight(int d,int i);
 int hamDistance(int i,int j);
 
+/* transform QUBO matrix to Ising matrix (uptriangle) */
+void transform_QUBO_to_Ising(double Q[N][N], double J[N][N]);
+
 /*Make Hamiltonian*/
 void embed_diagonal_H(double H[Nums], double J[N][N]);
 

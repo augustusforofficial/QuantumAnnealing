@@ -1,4 +1,4 @@
-#include "annealing.h"
+#include "../src/annealing.h"
 #include "string.h"
 
 /*p:利得プレイヤー番号*/
@@ -68,8 +68,8 @@ int main()
     double complex *f1 = malloc(sizeof(double complex) * Nums);
 
     double B0 = 1.0;
-    int Time = 1;
-    double tau = 2.0;
+    int Time = 10000;
+    double tau = 1.0;
 
     /*数値シミュレーション上では J[i][j]はいらない。関数式そのものにすべての場合を代入すれば対角成分は計算可能である*/
     /* <0010|H^|0010> = H(0,0,1,0) ここで H^ は横磁場イジングモデルにおける作用素であることに注意。*/
@@ -145,6 +145,12 @@ int main()
         }
     }
 
+    /* H[i] = -1 * f(i) 仮説に基づき,　-1 倍してみる */
+    #pragma omp parallel for
+    for(int i=0; i<Nums; i++){
+        H[i] = -1 * H[i];
+    }
+
     int min_index = 0;
     for (i=0; i<Nums; i++){
         if(H[i] < H[min_index]){
@@ -163,7 +169,7 @@ int main()
     printf("count = %d\n", count);
 
     /*時間発展*/
-    // time_evolution_Hamiltonian(f1,H,Time,B0,tau);
+    time_evolution_Hamiltonian(f1,H,Time,B0,tau);
 
     // printf("finished\n");
 

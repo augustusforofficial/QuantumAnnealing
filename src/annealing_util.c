@@ -50,8 +50,30 @@ int hamDistance(int i, int j)
     return count;
 }
 
+/* QUBO形式 Q[i][j](対象行列) => Ising形式 J[i][j](上三角行列) への変換*/
+void transform_QUBO_to_Ising(double Q[N][N], double J[N][N]){
+
+    #pragma omp parallel for
+    for(int i=0;i<N;i++){
+        for(int j=0;j<N;j++){
+            if(i<j){
+                J[i][j] = Q[i][j] / 2.0;
+            }else if(i==j){
+                double qi_sum = 0.0;
+                for(int k=0;k<N;k++){
+                    qi_sum += Q[i][k];
+                }
+                J[i][j] = qi_sum / 2.0;
+            }else{
+                J[i][j] = 0.0;
+            }
+        }
+    }
+}
+
 /*ハミルトニアン対角埋め込み*/
 /*iBitNumの切り替えで読み方を変更可能*/
+/*上三角の読み取り方であることに注意！！！*/
 void embed_diagonal_H(double H[Nums], double J[N][N])
 {
     int candidate_num, j, k;
@@ -63,6 +85,10 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
     {
         for (j = 0; j < N; j++)
         {
+            /* 対角項 */
+            H[candidate_num] += (2 * iBitNumRight(candidate_num, j) - 1) * J[j][j];
+            
+            /* 相互作用項（上三角のみ）*/
             for (k = j + 1; k < N; k++)
             {
                 H[candidate_num] += (2 * iBitNumRight(candidate_num, j) - 1) * (2 * iBitNumRight(candidate_num, k) - 1) * J[j][k];
@@ -104,25 +130,25 @@ void time_evolution_Hamiltonian(double complex *f1, double *H, int Time, double 
 
             /*先に対角成分だけ足しこんで、そのあとに非対角成分も足しこむ*/
             /*まずは対角成分*/
-            T_ij = 1.0 - ((0.5 * H[i] * At * dt) * I);
+            T_ij = 1.0 - (0.5 * H[i] * At * dt * I);
             f1[i] += T_ij * f0[i];
             for (int bit = 0; bit < N; bit++)
             {
                 /*次に非対角成分*/
                 /*i = 7の時は、 1<<bit で 001,010,100 とXORして　j=110,101,011*/
                 int j = i ^ (1 << bit);
-                T_ij = -1 * Bt * dt * I;
+                T_ij = -1 * 0.5 * Bt * dt * I;
                 f1[i] += T_ij * f0[j];
             }
         }
-        double complex *tmp = f0;
-        f0 = f1;
-        f1 = tmp;
         
-        /* 近似によりノルムが保存されないため必要*/
-        if(time % 10 == 0){
-            normalize(f0);
-        } 
+        /* 近似によりノルムが保存されないため毎ステップで正規化*/
+        normalize(f1);
+
+        #pragma omp parallel for
+        for(int i=0; i < Nums; i++){
+            f0[i] = f1[i];
+        }
 
         if(time % 10000 == 0){
             printf("%d th \n#",time);

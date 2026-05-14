@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Fast plotting for quantum annealing results using binary I/O.
 
-Instead of parsing millions of printf lines, the C executable should write
-probabilities directly to a binary file:
+The C executable should write probabilities directly to a binary file as double array:
 
     FILE *fp = fopen("result.bin", "wb");
-    fwrite(f1, sizeof(double complex), Nums, fp);
+    fwrite(prob, sizeof(double), Nums, fp);
     fclose(fp);
 
 This script reads that binary file directly and plots either top-N states
@@ -19,12 +18,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-def read_complex_binary(filepath: str) -> np.ndarray:
-    """Read complex128 state vector from binary file."""
-    psi = np.fromfile(filepath, dtype=np.complex128)
-    if psi.size == 0:
+def read_prob_binary(filepath: str) -> np.ndarray:
+    """Read double probabilities from binary file."""
+    probs = np.fromfile(filepath, dtype=np.float64)
+    if probs.size == 0:
         raise RuntimeError(f"No data found in {filepath}")
-    probs = psi.real * psi.real + psi.imag * psi.imag
     return probs
 
 
@@ -60,14 +58,14 @@ def plot_probabilities(probs: np.ndarray, output: str, threshold: float = None, 
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot annealing result from binary complex state vector")
+    parser = argparse.ArgumentParser(description="Plot annealing result from binary probability vector")
     parser.add_argument("binary_file", help="Binary file written by C executable")
     parser.add_argument("--output", "-o", default="plot.png")
     parser.add_argument("--threshold", type=float)
     parser.add_argument("--top", type=int, default=20)
     args = parser.parse_args()
 
-    probs = read_complex_binary(args.binary_file)
+    probs = read_prob_binary(args.binary_file)
     plot_probabilities(probs, args.output, threshold=args.threshold, top_n=args.top)
 
 

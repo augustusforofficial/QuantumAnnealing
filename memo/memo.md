@@ -47,7 +47,7 @@ python3 scripts/plot_annealing.py new_template --threshold 0.01
 
 出力ファイルを指定する場合：
 ```shell
-python3 scripts/plot_annealing.py new_template --top 20 -o result.png
+python3 scripts/plot_annealing.py ./bin/CFmMIMO_result.bin --top 20 -o ./results/CFmMIMO_revice.png
 ```
 CUDA ver : 
 ```shell
@@ -87,5 +87,7 @@ PATH : コマンド , LD_LIBRARY_PATH : ライブラリのパス
 3人囚人の最適は 2001448
 だけど 262163, 262143 ばかり出てくる
 1307079も
+
+CFmMIMOの最適解は 218624 = 110,101,011,000,000000
 
 Time = 10**7  : 必要時間 32h 程度

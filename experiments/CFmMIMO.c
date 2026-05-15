@@ -70,7 +70,7 @@ void Add_Energy_QUBO_to_Hamiltonian(double H[Nums], double Q[N][N], double term_
                 sum += Q[i][j] * iBitNumLeft(c, i) * iBitNumLeft(c, j);
             }
         }
-        H[c] = (sum + term_const);
+        H[c] = -1 * (sum + term_const);
     }
 }
 
@@ -273,7 +273,7 @@ int main()
     }
 
     double B0 = 1.0;
-    int Time = 10000;
+    int Time = 1000000;
     double tau = 1.0;
 
     // Hの初期化
@@ -289,7 +289,7 @@ int main()
     Show_Hamiltonian_max_min(prob);
 
     double p;
-    FILE *fp = fopen("./bin/CFmMIMO_result.bin", "wb");
+    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0514.bin", "wb");
     fwrite(prob, sizeof(double), Nums, fp);
     fclose(fp);
 }

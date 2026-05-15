@@ -9,7 +9,7 @@ int main(){
     double complex f1[Nums] = {0.0 + 0.0 * I};
 
     double B0 = 1.0;
-    int Time = 1000;
+    int Time = 100000;
     double tau = 1.0;
 
     /*J[i][j]の定義.これは問題によって定義する*/

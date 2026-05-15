@@ -125,7 +125,7 @@ void time_evolution_Hamiltonian(double complex *f1, double *H, int Time, double 
         #pragma omp parallel for schedule(static)
         for (int i = 0; i < Nums; i++)
         {
-            double complex T_ij;
+            double complex T_ij = 0.0 + 0.0 * I;
             f1[i] = 0.0 + 0.0 * I;
 
             /*先に対角成分だけ足しこんで、そのあとに非対角成分も足しこむ*/
@@ -137,7 +137,7 @@ void time_evolution_Hamiltonian(double complex *f1, double *H, int Time, double 
                 /*次に非対角成分*/
                 /*i = 7の時は、 1<<bit で 001,010,100 とXORして　j=110,101,011*/
                 int j = i ^ (1 << bit);
-                T_ij = -1 * 0.5 * Bt * dt * I;
+                T_ij = -0.5 * Bt * dt * I;
                 f1[i] += T_ij * f0[j];
             }
         }

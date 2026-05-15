@@ -22,10 +22,45 @@ int payoff_of_3_prisoners_dilemma(int p, int i, int j, int k)
     return -10;
 }
 
+void make_prob_vec(double complex f1[Nums], double prob[Nums]){
+    #pragma omp parallel for
+    for(int i=0; i<Nums; i++){
+        double re = creal(f1[i]);
+        double im = cimag(f1[i]);
+        prob[i] = re * re + im * im;
+    }
+}
+
+void Show_Hamiltonian_max_min(double H[Nums]){
+    /* H[i] の最大値確認*/
+    double max = -99999.9999;
+    int max_index = 0;
+    for (int i = 0; i < Nums; i++)
+    {
+        if (max <= H[i])
+        {
+            max = H[i];
+            max_index = i;
+        }
+    }
+    printf("max H[i] is H[%d] = %f\n", max_index, H[max_index]);
+
+    /* H[i] の最小値確認*/
+    double min = 99999.9999;
+    int min_index = 0;
+    for (int i = 0; i < Nums; i++)
+    {
+        if (min >= H[i])
+        {
+            min = H[i];
+            min_index = i;
+        }
+    }
+    printf("min H[i] is H[%d] = %f\n", min_index, H[min_index]);
+}
+
 int main()
 {
-    int i, j, k;
-
     /*improve : */
     /*定数宣言*/
     /*0 : 黙秘 , 1 : 自白　とする*/
@@ -40,7 +75,7 @@ int main()
         sizeof(strategy_1) / sizeof(strategy_1[0]),
         sizeof(strategy_2) / sizeof(strategy_2[0])};
     int sum_stg = 0;
-    for (i = 0; i < num_player; i++)
+    for (int i = 0; i < num_player; i++)
     {
         sum_stg += num_stg[i];
     }
@@ -51,11 +86,11 @@ int main()
 
     for (int p = 0; p < num_player; p++)
     {
-        for (i = 0; i < num_stg[0]; i++)
+        for (int i = 0; i < num_stg[0]; i++)
         {
-            for (j = 0; j < num_stg[1]; j++)
+            for (int j = 0; j < num_stg[1]; j++)
             {
-                for (k = 0; k < num_stg[2]; k++)
+                for (int k = 0; k < num_stg[2]; k++)
                 {
                     payoff_sum[i][j][k] += payoff_of_3_prisoners_dilemma(p, i, j, k);
                 }
@@ -64,30 +99,31 @@ int main()
     }
 
     /* 2026/3/9,13 : 利得までOK*/
-    double *H = malloc(sizeof(double) * Nums); /*ハミルトニアンの対角項*/
-    double complex *f1 = malloc(sizeof(double complex) * Nums);
+    double *H = calloc(Nums, sizeof(double)); /*ハミルトニアンの対角項*/
+    double complex *f1 = calloc(Nums, sizeof(double complex));
 
     double B0 = 1.0;
-    int Time = 10000;
+    int Time = 100000;
     double tau = 1.0;
 
     /*数値シミュレーション上では J[i][j]はいらない。関数式そのものにすべての場合を代入すれば対角成分は計算可能である*/
     /* <0010|H^|0010> = H(0,0,1,0) ここで H^ は横磁場イジングモデルにおける作用素であることに注意。*/
     /* 従って、演算子行列 H の対角項は　H(0,0,0) ~ H(1,1,1) までの計算で可能である。*/
 
-    int x, y, z;                           /*戦略のバイナリ変数*/
-    int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
     const double hypers = 1.0;      /*制約項のハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
     const int num_slack = 3;               /*各ペナルティ項におけるスラック変数の個数*/
     const int start_slack = 3;             /*スラックが始まるインデックス番号*/
-    int Pen[num_pen];                      /*各ペナルティ項*/
 
     /*qubit数 : 戦略3つ + スラック3個*6行=18個 の計21個*/
-    for (i = 0; i < Nums; i++)
+    /* ここに #pragma omp parallel for でスタック*/
+    for (int i = 0; i < Nums; i++)
     {
-        for (j = 0; j < num_pen; j++)
+        int x, y, z;                           /*戦略のバイナリ変数*/
+        int s1, s2, s3;                        /*ペナルティ項毎のスラック変数用*/
+        int Pen[num_pen];                      /*各ペナルティ項*/
+        for (int j = 0; j < num_pen; j++)
         {
             Pen[j] = 0;
         }
@@ -109,7 +145,7 @@ int main()
         Pen[4] += payoff_of_3_prisoners_dilemma(2, x, y, 0);
         Pen[5] += payoff_of_3_prisoners_dilemma(2, x, y, 1);
 
-        for (j = 0; j < num_pen; j++)
+        for (int j = 0; j < num_pen; j++)
         {
             s1 = (i >> (N - 1 - j * num_slack - start_slack)) & 1;
             s2 = (i >> (N - 2 - j * num_slack - start_slack)) & 1;
@@ -125,57 +161,39 @@ int main()
         Pen[4] -= gamma;
         Pen[5] -= gamma;
 
-        for (j = 0; j < num_pen; j++)
+        for (int j = 0; j < num_pen; j++)
         {
             Pen[j] = Pen[j] * Pen[j];
             H[i] += hypers * Pen[j];
         }
 
         H[i] = H[i] + alpha + beta + gamma;
-
-        if (H[i] <= 0)
-        {
-            printf("i = %d\n", i);
-            printf("H0 = %d\n", (-1) * payoff_sum[x][y][z]);
-            for (j = 0; j < num_pen; j++)
-            {
-                printf("Pen[%d] = %d\n", j, Pen[j]);
-            }
-            printf("H[%d] = %f\n", i, H[i]);
-        }
     }
+
+    Show_Hamiltonian_max_min(H);
 
     /* H[i] = -1 * f(i) 仮説に基づき,　-1 倍してみる */
     #pragma omp parallel for
     for(int i=0; i<Nums; i++){
         H[i] = -1 * H[i];
-    }
+    } 
 
-    int min_index = 0;
-    for (i=0; i<Nums; i++){
-        if(H[i] < H[min_index]){
-            min_index = i;
-        }
-    }
-    printf("min_index = %d\n", min_index);
-
-    int count = 0;
-    for(i=0;i<Nums;i++){
-        if(H[i] <= 2.0){
-            count += 1;
-            printf("H[%d] = %f\n",i,H[i]);
-        }
-    }
-    printf("count = %d\n", count);
+     Show_Hamiltonian_max_min(H);
 
     /*時間発展*/
     time_evolution_Hamiltonian(f1,H,Time,B0,tau);
 
-    // printf("finished\n");
+    printf("finished\n");
+
+    /*確率ベクトルの作成*/
+    double prob[Nums] = {0.0};
+    make_prob_vec(f1, prob);
+    printf("prob max and min\n");
+    Show_Hamiltonian_max_min(prob);
 
     /*最終出力*/
     double p;
-    FILE *fp = fopen("./3_prisoners_dilemma_Hamiltonian_check.bin", "wb");
-    fwrite(H, sizeof(double), Nums, fp);
+    FILE *fp = fopen("./3_prisoners_dilemma_result.bin", "wb");
+    fwrite(prob, sizeof(double), Nums, fp);
     fclose(fp);
 }

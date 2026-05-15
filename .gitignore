@@ -19,7 +19,7 @@ results/
 # plot.png は状況次第（後述）
 
 # ===== エディタ =====
-.vscode/
+.vscode/*
 
 # ===== OS =====
 .DS_Store

@@ -1,4 +1,4 @@
-#include "annealing.h"
+#include "./annealing.h"
 
 int main(){
     int i,j,k;
@@ -14,11 +14,14 @@ int main(){
 
     /*J[i][j]の定義.これは問題によって定義する*/
     for(i=0;i<N;i++){
-        for(j=0;j<N;j++){
-            if(i!=j) J[i][j] = -1 * ni[i] * ni[j];
+        for(j=i+1;j<N;j++){
+            if(i!=j) J[i][j] =  ni[i] * ni[j];
         }
     }
     
+    embed_diagonal_H(H, J);
+    Show_vector_Nums(H);
+
     /*時間発展*/
     time_evolution(f1,J,Time,B0,tau);
 

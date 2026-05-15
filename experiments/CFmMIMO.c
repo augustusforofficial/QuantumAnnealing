@@ -16,121 +16,6 @@
     a : 式内のa
     index[N] : Σx に入る場合1,入らない場合0の配列*/
 /* 返り値として定数項を返す.*/
-double embed_pow_in_Jij(double Q[N][N], int a, double coef[N], double hyper_parameter)
-{
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = i; j < N; j++)
-        {
-            if (i == j)
-            {
-                Q[i][j] += (coef[i] * coef[i] - 2 * a * coef[i]) * hyper_parameter;
-            }
-            else
-            {
-                Q[i][j] += 2 * coef[i] * coef[j] * hyper_parameter;
-            }
-        }
-    }
-
-    return (double) hyper_parameter * a * a;
-}
-
-void print_matrix(double A[N][N], double num_row, double num_collum)
-{
-    printf("matrix\n");
-    for (int i = 0; i < num_row; i++)
-    {
-        for (int j = 0; j < num_collum; j++)
-        {
-            printf("%.4f, ", A[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void Initialization_array_double(double *A, int length){
-
-    #pragma omp schedule for
-    for(int i=0; i<length; i++){
-        A[i] = 0.0;
-    }
-}
-
-/* 定数項も追加するように*/
-/* note : H[i] = -1 * f(i) であることに注意*/
-void Add_Energy_QUBO_to_Hamiltonian(double H[Nums], double Q[N][N], double term_const){
-    for (int c = 0; c < Nums; c++)
-    {
-        double sum = 0.0;
-        for (int i = 0; i < N; i++)
-        {
-            for (int j = i; j < N; j++)
-            {
-                sum += Q[i][j] * iBitNumLeft(c, i) * iBitNumLeft(c, j);
-            }
-        }
-        H[c] = -1 * (sum + term_const);
-    }
-}
-
-void Show_Hamiltonian_max_min(double H[Nums]){
-    /* H[i] の最大値確認*/
-    double max = -99999.9999;
-    int max_index = 0;
-    for (int i = 0; i < Nums; i++)
-    {
-        if (max <= H[i])
-        {
-            max = H[i];
-            max_index = i;
-        }
-    }
-    printf("max H[i] is H[%d] = %f\n", max_index, H[max_index]);
-
-    /* H[i] の最小値確認*/
-    double min = 99999.9999;
-    int min_index = 0;
-    for (int i = 0; i < Nums; i++)
-    {
-        if (min >= H[i])
-        {
-            min = H[i];
-            min_index = i;
-        }
-    }
-    printf("min H[i] is H[%d] = %f\n", min_index, H[min_index]);
-}
-
-void Show_matrix_NN(double A[N][N], double row, double column){
-    for(int i=0; i<row; i++){
-        for(int j=0; j<column; j++){
-            printf("%.5f, ", A[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void Show_vector_N(double A[N]){
-    for(int i=0; i<N; i++){
-        printf("%f, ", A[i]);
-    }
-}
-
-void Show_vector_Nums(double A[Nums]){
-    for(int i=0; i<Nums; i++){
-        printf("%d : %f\n",i , A[i]);
-    }
-}
-
-void make_prob_vec(double complex f1[Nums], double prob[Nums]){
-    for(int i=0; i<Nums; i++){
-        double re = creal(f1[i]);
-        double im = cimag(f1[i]);
-        prob[i] = re * re + im * im;
-    }
-}
-
 int main()
 {
     const double sigma = 1;     /*ノイズ*/
@@ -273,7 +158,7 @@ int main()
     }
 
     double B0 = 1.0;
-    int Time = 1000000;
+    int Time = 100000;
     double tau = 1.0;
 
     // Hの初期化
@@ -287,6 +172,7 @@ int main()
     double prob[Nums] = {0.0};
     make_prob_vec(f1, prob);
     Show_Hamiltonian_max_min(prob);
+    Show_top_X(prob,10);
 
     double p;
     FILE *fp = fopen("./bin/CFmMIMO_result_2026_0514.bin", "wb");

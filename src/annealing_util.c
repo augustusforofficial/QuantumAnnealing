@@ -86,12 +86,12 @@ void embed_diagonal_H(double H[Nums], double J[N][N])
         for (j = 0; j < N; j++)
         {
             /* 対角項 */
-            H[candidate_num] += (2 * iBitNumRight(candidate_num, j) - 1) * J[j][j];
+            H[candidate_num] += (2 * iBitNumLeft(candidate_num, j) - 1) * J[j][j];
             
             /* 相互作用項（上三角のみ）*/
             for (k = j + 1; k < N; k++)
             {
-                H[candidate_num] += (2 * iBitNumRight(candidate_num, j) - 1) * (2 * iBitNumRight(candidate_num, k) - 1) * J[j][k];
+                H[candidate_num] += (2 * iBitNumLeft(candidate_num, j) - 1) * (2 * iBitNumLeft(candidate_num, k) - 1) * J[j][k];
             }
         }
     }
@@ -137,7 +137,7 @@ void time_evolution_Hamiltonian(double complex *f1, double *H, int Time, double 
                 /*次に非対角成分*/
                 /*i = 7の時は、 1<<bit で 001,010,100 とXORして　j=110,101,011*/
                 int j = i ^ (1 << bit);
-                T_ij = -0.5 * Bt * dt * I;
+                T_ij = 0.5 * Bt * dt * I;
                 f1[i] += T_ij * f0[j];
             }
         }
@@ -151,7 +151,7 @@ void time_evolution_Hamiltonian(double complex *f1, double *H, int Time, double 
         }
 
         if(time % 10000 == 0){
-            printf("%d th \n#",time);
+            printf("#%d th \n",time);
         }
     }
 
@@ -187,6 +187,157 @@ void normalize(double complex psi[Nums])
     for (int i = 0; i < Nums; i++)
     {
         psi[i] *= inv_norm;
+    }
+}
+
+double embed_pow_in_Jij(double Q[N][N], int a, double coef[N], double hyper_parameter)
+{
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = i; j < N; j++)
+        {
+            if (i == j)
+            {
+                Q[i][j] += (coef[i] * coef[i] - 2 * a * coef[i]) * hyper_parameter;
+            }
+            else
+            {
+                Q[i][j] += 2 * coef[i] * coef[j] * hyper_parameter;
+            }
+        }
+    }
+
+    return (double) hyper_parameter * a * a;
+}
+
+void print_matrix(double A[N][N], double num_row, double num_column)
+{
+    printf("matrix\n");
+    for (int i = 0; i < num_row; i++)
+    {
+        for (int j = 0; j < num_column; j++)
+        {
+            printf("%.4f, ", A[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void Initialization_array_double(double *A, int length){
+
+    #pragma omp schedule for
+    for(int i=0; i<length; i++){
+        A[i] = 0.0;
+    }
+}
+
+void Initialization_array_int(int *A, int length){
+
+    #pragma omp schedule for
+    for(int i=0; i<length; i++){
+        A[i] = 0;
+    }
+}
+
+/* 定数項も追加するように*/
+/* note : H[i] = -1 * f(i) であることに注意*/
+void Add_Energy_QUBO_to_Hamiltonian(double H[Nums], double Q[N][N], double term_const){
+    for (int c = 0; c < Nums; c++)
+    {
+        double sum = 0.0;
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = i; j < N; j++)
+            {
+                sum += Q[i][j] * iBitNumLeft(c, i) * iBitNumLeft(c, j);
+            }
+        }
+        H[c] = (sum + term_const);
+    }
+}
+
+void Show_Hamiltonian_max_min(double H[Nums]){
+    /* H[i] の最大値確認*/
+    double max = -99999.9999;
+    int max_index = 0;
+    for (int i = 0; i < Nums; i++)
+    {
+        if (max <= H[i])
+        {
+            max = H[i];
+            max_index = i;
+        }
+    }
+    printf("max H[i] is H[%d] = %f\n", max_index, H[max_index]);
+
+    /* H[i] の最小値確認*/
+    double min = 99999.9999;
+    int min_index = 0;
+    for (int i = 0; i < Nums; i++)
+    {
+        if (min >= H[i])
+        {
+            min = H[i];
+            min_index = i;
+        }
+    }
+    printf("min H[i] is H[%d] = %f\n", min_index, H[min_index]);
+}
+
+void Show_matrix_NN(double A[N][N], double row, double column){
+    for(int i=0; i<row; i++){
+        for(int j=0; j<column; j++){
+            printf("%.5f, ", A[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void Show_vector_N(double A[N]){
+    for(int i=0; i<N; i++){
+        printf("%f, ", A[i]);
+    }
+}
+
+void Show_vector_Nums(double A[Nums]){
+    for(int i=0; i<Nums; i++){
+        printf("%d : %f\n",i , A[i]);
+    }
+}
+
+void make_prob_vec(double complex f1[Nums], double prob[Nums]){
+    for(int i=0; i<Nums; i++){
+        double re = creal(f1[i]);
+        double im = cimag(f1[i]);
+        prob[i] = re * re + im * im;
+    }
+}
+
+void Show_top_X(double prob[Nums], int X){
+    int topX_index[X];  // [1位, 2, 3,..., X位]
+    Initialization_array_int(topX_index, X);
+
+    for(int i=0; i<Nums; i++){
+        int k = 0;  // 何個ずらすのかの変数
+        while(prob[i] > prob[topX_index[X-k-1]]){  //暫定top10のものと比較して
+            k++;
+            if(k >= X) break;   // 右から X番目まで来たら TOP 確定 => break
+        }
+
+        /* 挿入することが確定したら */
+        if(k > 0){
+            /* 右からk-1個は左のものを代入する*/
+            /* [... ,k, a, b, c] => [... , k, k, a, b]*/
+            for(int j=0; j<k-1; j++){
+                topX_index[X - j - 1] = topX_index[X - (j+1) - 1];
+            }
+            topX_index[X - k] = i;
+        }
+    }
+
+    printf("x th : (index, val)\n");
+    for(int i=0; i<X; i++){
+        printf("%d th : (%d, %.17g)\n", i+1, topX_index[i], prob[topX_index[i]]);
     }
 }
 

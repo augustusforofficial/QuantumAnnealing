@@ -20,6 +20,7 @@ results/
 
 # ===== エディタ =====
 .vscode/*
+!.vscode/*.example
 
 # ===== OS =====
 .DS_Store

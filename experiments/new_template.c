@@ -1,4 +1,4 @@
-#include "./annealing.h"
+#include "../src/annealing.h"
 
 int main(){
     int i,j,k;
@@ -15,7 +15,7 @@ int main(){
     /*J[i][j]の定義.これは問題によって定義する*/
     for(i=0;i<N;i++){
         for(j=i+1;j<N;j++){
-            if(i!=j) J[i][j] =  ni[i] * ni[j];
+            if(i!=j) J[i][j] =  -1 * ni[i] * ni[j];
         }
     }
     
@@ -23,11 +23,15 @@ int main(){
     Show_vector_Nums(H);
 
     /*時間発展*/
-    time_evolution(f1,J,Time,B0,tau);
-
-    /*正規化.時間発展中で毎回行うのが実際だが、計算上は最後にまとめて行っても良い。*/
-    normalize(f1);
+    time_evolution_Hamiltonian_Iidaka(f1,H,Time,B0,tau);
 
     /*最終出力*/
-    print_state(f1);
+    double prob[Nums] = {0.0};
+    Initialization_array_double(prob, Nums);
+    make_prob_vec(f1,prob)
+\
+    for(i=0;i<Nums;i++){
+        printf("%d : %f\n", i, prob[i]);
+    }
+    Show_top_X(prob, 8);
 }

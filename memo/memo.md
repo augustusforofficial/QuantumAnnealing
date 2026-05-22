@@ -54,7 +54,10 @@ CUDA ver :
 python3 scripts/plot_cuBLAS_annealing.py [--output plot.png] [--threshold 0.01] [--top 20]
 ```
 
-Claude Haiku 4.5 • 1x
+uv ver :
+```shell
+ uv run python scripts/plot_annealing.py ./bin/3_prisoners_dilemma_result.bin --top 20 -o ./results/dilemma_0520.png
+```
 
 ## C言語
 3/12

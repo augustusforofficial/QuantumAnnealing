@@ -33,6 +33,9 @@ void embed_diagonal_H(double H[Nums], double J[N][N]);
 /*Time Evolution Hamiltonian*/
 void time_evolution_Hamiltonian(double complex f1[Nums],double H[Nums],int Time,double B0, double tau);
 
+/*second-order approximation of Hamiltonian time evolution*/
+void time_evolution_Hamiltonian_Iidaka(double complex f1[Nums],double H[Nums],int Time,double B0, double tau);
+
 /*Time Evolution*/
 void time_evolution(double complex f1[Nums],double J[N][N],int Time,double B0,double tau);
 
@@ -40,14 +43,14 @@ void time_evolution(double complex f1[Nums],double J[N][N],int Time,double B0,do
 void normalize(double complex psi[Nums]);
 
 /* (x0+x1+...+xn - a)^2 を展開する*/
-double embed_pow_in_Jij(double Q[N][N], int a, double coef[N], double hyper_parameter);
+double embed_pow_in_Qij(double Q[N][N], int a, double coef[N], double hyper_parameter);
 
 /* N * N　行列の num_row * num_column を表示 */
 void print_matrix(double A[N][N], double num_row, double num_column);
 
 void Initialization_array_double(double *A, int length);
 
-void Initialization_array_int(int *A, int length);
+void Initialization_array_int(int *A, int length, int a);
 
 /* 定数項も追加するように*/
 /* note : H[i] = -1 * f(i) であることに注意*/
@@ -64,8 +67,5 @@ void Show_vector_Nums(double A[Nums]);
 void make_prob_vec(double complex f1[Nums], double prob[Nums]);
 
 void Show_top_X(double prob[Nums], int X);
-
-/*output*/
-void print_state(double complex psi[Nums]);
 
 #endif // ANNEALING_H

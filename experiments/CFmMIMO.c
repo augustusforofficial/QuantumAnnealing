@@ -33,8 +33,8 @@ int main()
     double distance;
     double sub_x;
     double sub_y;
-    double hyper_parameter_a = 0.5;
-    double hyper_parameter_b = 0.5;
+    double hyper_parameter_a = 5;
+    double hyper_parameter_b = 5;
     for (int index_user = 0; index_user < NUM_USER; index_user++)
     { // k : ユーザー番号
         for (int index_ap = 0; index_ap < NUM_AP; index_ap++)
@@ -129,7 +129,7 @@ int main()
             pickup[index_start_slack + num_bit_slack_of_y * index_user + i] = -1 * pow(2.0, (double)i);
         }
         
-        term_const +=  embed_pow_in_Jij(Q, L, pickup, hyper_parameter_a);
+        term_const +=  embed_pow_in_Qij(Q, L, pickup, hyper_parameter_a);
     }
 
     // Show_matrix_NN(Q, N, N);
@@ -154,10 +154,10 @@ int main()
         {
             pickup[index_start_slack + index_AP * num_bit_slack_of_z + j] = pow(2.0, (double)j);
         }
-        term_const +=  embed_pow_in_Jij(Q, U, pickup, hyper_parameter_b);
+        term_const +=  embed_pow_in_Qij(Q, U, pickup, hyper_parameter_b);
     }
 
-    double B0 = 1.0;
+    double B0 = 10;
     int Time = 100000;
     double tau = 1.0;
 
@@ -167,15 +167,14 @@ int main()
     Add_Energy_QUBO_to_Hamiltonian(H, Q, term_const);
     Show_Hamiltonian_max_min(H);
 
-    time_evolution_Hamiltonian(f1,H,Time,B0,tau);
+    time_evolution_Hamiltonian_Iidaka(f1,H,Time,B0,tau);
 
     double prob[Nums] = {0.0};
     make_prob_vec(f1, prob);
-    Show_Hamiltonian_max_min(prob);
     Show_top_X(prob,10);
 
     double p;
-    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0514.bin", "wb");
+    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0521.bin", "wb");
     fwrite(prob, sizeof(double), Nums, fp);
     fclose(fp);
 }

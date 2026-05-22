@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "C/C++: gcc ",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "${workspaceFolder}/src/annealing_util.c",
+                "-I",
+                "${workspaceFolder}/src",
+                "-o",
+                "${workspaceFolder}/bin/${fileBasenameNoExtension}",
+                "-lm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+            },
+            "detail": "Compiler: /usr/bin/gcc (WSL Ubuntu)"
+        }
+    ]
+}

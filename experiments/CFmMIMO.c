@@ -145,6 +145,7 @@ int main()
         /*今回の slack は、前回の終わりから NUM_USER * num_bit_slack_of_y */
         int index_start_slack = NUM_USER * NUM_AP + NUM_USER * num_bit_slack_of_y;
         double pickup[N] = {0.0};
+        
         Initialization_array_double(pickup, N);
         for (int j = 0; j < NUM_USER; j++)
         {
@@ -173,8 +174,7 @@ int main()
     make_prob_vec(f1, prob);
     Show_top_X(prob,10);
 
-    double p;
-    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0521.bin", "wb");
+    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0522.bin", "wb");
     fwrite(prob, sizeof(double), Nums, fp);
     fclose(fp);
 }

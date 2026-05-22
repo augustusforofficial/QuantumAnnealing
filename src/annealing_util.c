@@ -239,8 +239,8 @@ void time_evolution_Hamiltonian_Iidaka(double complex *f2, double *H, int Time, 
                 }
             }
             if(time % 10 == 0){
+                normalize(f1);
                 normalize(f2);
-
             }
             
 #pragma omp parallel for

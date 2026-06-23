@@ -159,7 +159,7 @@ int main()
     }
 
     double B0 = 10;
-    int Time = 100000;
+    int Time = 10000;
     double tau = 1.0;
 
     // Hの初期化
@@ -174,7 +174,7 @@ int main()
     make_prob_vec(f1, prob);
     Show_top_X(prob,10);
 
-    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0522.bin", "wb");
+    FILE *fp = fopen("./bin/CFmMIMO_result_2026_0529.bin", "wb");
     fwrite(prob, sizeof(double), Nums, fp);
     fclose(fp);
 }

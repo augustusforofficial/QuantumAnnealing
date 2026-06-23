@@ -74,7 +74,7 @@ int main()
     /* 従って、演算子行列 H の対角項は　H(0,0,0) ~ H(1,1,1) までの計算で可能である。*/
 
     int alpha = -5, beta = -5, gamma = -5; /*戦略の期待値を抑えるハイパーパラメータ*/
-    const double hypers = 10;      /*制約項のハイパーパラメータ*/
+    const double hypers = 20;      /*制約項のハイパーパラメータ*/
     const int num_pen = 6;                 /*ペナルティ項の個数.*/
     const int num_slack = 3;               /*各ペナルティ項におけるスラック変数の個数*/
     const int start_slack = 3;             /*スラックが始まるインデックス番号*/
@@ -133,21 +133,20 @@ int main()
         H[i] = H[i] + alpha + beta + gamma;
     }
 
-
     // #pragma omp parallel for
     // for(int i=0; i<Nums; i++){
     //     H[i] = -1 * H[i];
     // }
 
-    // Show_Hamiltonian_max_min(H);
+    Show_Hamiltonian_max_min(H);
 
-    // /*時間発展*/
-    // time_evolution_Hamiltonian_Iidaka(f2,H,Time,B0,tau);
+    /*時間発展*/
+    time_evolution_Hamiltonian_Iidaka(f2,H,Time,B0,tau);
 
-    // /*確率ベクトルの作成*/
-    // double *prob = calloc(Nums, sizeof(double));
-    // make_prob_vec(f2, prob);
-    // Show_top_X(prob, 10);
+    /*確率ベクトルの作成*/
+    double *prob = calloc(Nums, sizeof(double));
+    make_prob_vec(f2, prob);
+    Show_top_X(prob, 10);
 
     /*最終出力*/
     FILE *fp = fopen("./3_prisoners_dilemma_Hamiltonian_0522_02.bin", "wb");
@@ -156,5 +155,5 @@ int main()
 
     free(H);
     free(f2);
-    // free(prob);
+    free(prob);
 }

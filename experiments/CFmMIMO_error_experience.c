@@ -52,16 +52,53 @@ Coordinates gene_random_coordinate(double maxs[2]){
     return c;
 };
 
-double obj_function(double **g, int num_Users, int num_APs){
+// H0 の部分.
+double obj_function(int i, int j ,double **g, int num_Users, int num_APs){
+    int range_explanatory_var = num_Users * num_APs;    //スラック変数でなく、説明変数部分の範囲
+    if ((i < range_explanatory_var) && (j < range_explanatory_var)){
+         /* i,jから各々のユーザー番号, AP番号を逆算*/
+            int index_user_i = i / num_APs;
+            int index_user_j = j / num_APs;
+            int index_AP_i = i % num_APs;
+            int index_AP_j = j % num_APs;
+            if (i == j) //上参画ではなく対象行列になることに注意
+            {
+                // 一次項 は g 1個
+                return -1 * g[index_user_i][index_AP_i];    
+            }
+            else if (index_user_i != index_user_j)
+            {
+                // 二次項は g * g
+                return -1 * g[index_user_i][index_AP_i] * g[index_user_j][index_AP_j];
+            }else {
+                return 0;   // 同一ユーザの変数の積の係数は 0
+            }
+    } 
 
+    return 0;   // i,jのどちらかがスラック変数の場合も 0
 };
 
-double sub_AP(int num_Users, int num_APs, int sup_AP){
+// <= sup_AP の AP制約項
+double sub_AP(int i, int j, int num_Users, int num_APs, int sup_AP){
+    int range_explanatory_var = num_Users * num_APs;    //スラック変数でなく、説明変数部分の範囲
+    int num_slack_AP = ((int)(log(sup_AP) / log(2)) + 1);   // AP制約に必要なスラック変数の数
 
+    // スラック変数に関係なかったら return 0
+    if ( ((i < range_explanatory_var) || (range_explanatory_var + num_APs <= i))
+        &&((j < range_explanatory_var) || (range_explanatory_var + num_APs <= j))){
+            return 0;
+        }
+    
+    // i,jのどちらかがスラック変数に関係があれば
+    
 };
 
-double sub_User(int num_Users, int num_APs, int inf_User){
-
+// L <= の User制約項
+double sub_User(int i, int j, int num_Users, int num_APs, int inf_User, int sup_AP){
+    // AP制約とUser制約両方のスラック変数の数をカウントする
+    // そうしないと　User制約のスラック変数が何番目から始まるのかがわからない
+    int num_slack_AP = ((int)(log(sup_AP) / log(2)) + 1);
+    int num_slack_Users = ((int) (log(num_APs - inf_User) / log(2)) + 1);
 };
 
 // インデックス番号 [i][j]　にて　Q[i][j] の要素を return する
@@ -69,13 +106,13 @@ double sub_User(int num_Users, int num_APs, int inf_User){
 // inf_User : 各Userの接続下限
 double make_QUBO_coef(int i, int j, double **g, int num_Users, int num_APs, int sup_AP, int inf_User){
     // 目的関数部分
-    double H0 = obj_function(g, num_Users, num_APs);
+    double H0 = obj_function(i, j, g, num_Users, num_APs);
 
     // 制約項1 : 各APの上限制約
-    double H1 = sub_AP(num_Users, num_Users, sup_AP);
+    double H1 = sub_AP(i, j, num_Users, num_Users, sup_AP);
 
     // 制約項2 : 各Userの下限制約
-    double H2 = sub_User(num_APs,num_Users,inf_User);
+    double H2 = sub_User(i, j, num_APs,num_Users, inf_User, sup_AP);
 
     // すべてを足し合わせて返却する
     return H0 + H1 + H2;

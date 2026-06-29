@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <complex.h>
+#include <float.h>
 #include "../src/annealing.h"
 
 // 位置座標
@@ -16,6 +17,11 @@ typedef struct optimal_solution{
     double opt_val;
     double opt_idx;
 } Opt_sol;
+
+typedef struct max_val{
+    double val;
+    int index;
+} Max_val;
 
 // 座標間の距離を与える関数
 double distance(struct coordinates a, struct coordinates b){
@@ -32,7 +38,7 @@ double capacity(double d, double alpha, double beta){
 // 実際の係数を計算する関数
 double make_g(double d, double alpha, double beta, double pow_sigma){
     // 1000で除すのは、dBm => dB　の変換か？
-    return pow((double) 10.0, capacity(d,alpha,beta) / 10.0 / pow_sigma / 1000);
+    return pow((double) 10.0, capacity(d,alpha,beta) / 10.0) / pow_sigma * 1e-3;
 };
 
 // ペナルティ項を展開して与える関数
@@ -119,15 +125,38 @@ double sub_AP(double *Q , int num_Users, int num_APs, int sup_AP, double hyper_p
 
 // L <= の User制約項
 double sub_User(double *Q , int num_Users, int num_APs, int inf_User, int sup_AP, double hyper_param){
+    double term_const = 0.0;
+    int range_explanatory_var = num_Users * num_APs;    //スラック変数でなく、説明変数部分の範囲
     // AP制約とUser制約両方のスラック変数の数をカウントする
     // そうしないと　User制約のスラック変数が何番目から始まるのかがわからない
     int num_slack_AP = ((int)(log(sup_AP) / log(2)) + 1);
     int num_slack_Users = ((int) (log(num_APs - inf_User) / log(2)) + 1);
-
+    int index_start_slack = range_explanatory_var + num_slack_AP;    // スラック変数の開始位置
     
+    for (int index_user = 0; index_user < num_Users; index_user++)
+    {
+
+        /* 関係するqubitは、
+         s[index_user][] : 0~2, 3~5, 6~8
+         y[index_user][] : 9~10, 11~12, 13~14 */
+        double coef_pen[index_start_slack + num_slack_Users]; // 制約式の ()^2 内での係数配列.もし()内に出なければ 0.0 をとる
+        Initialization_array_double(coef_pen, N);
+        /* s[][] 部分のピックアップ*/
+        for (int i = 0; i < num_APs; i++)
+        {
+            coef_pen[index_user * num_APs + i] = 1.0;
+        }
+        /* y[][] 部分のピックアップ. y[index_user][i] = 2^i の係数*/
+        for (int i = 0; i < num_slack_Users; i++)
+        {
+            coef_pen[index_start_slack + num_slack_Users * index_user + i] = -1 * pow(2.0, (double)i);
+        }
+        
+        term_const +=  embed_pow_in_Qij(Q, inf_User, coef_pen, hyper_param);
+    }
 };
 
-// インデックス番号 [i][j]　にて　Q[i][j] の要素を return する
+// Q[i][j]に埋め込む形
 // sup_AP : 各APの接続上限
 // inf_User : 各Userの接続下限
 double make_QUBO_coef(double **Q, double **g, int num_Users, int num_APs, int sup_AP, int inf_User, double hyper_param){
@@ -145,6 +174,32 @@ double make_QUBO_coef(double **Q, double **g, int num_Users, int num_APs, int su
     return term_const;
 };
 
+//厳密解の場合のハミルトニアン作成
+// H に各場合の値を埋め込む
+double make_Hamiltonian_strict(double **H, double **g, int num_Users, int num_APs, int sup_AP, int inf_User, double hyper_param){
+    int range_explanatory_var = num_Users * num_APs;    //スラック変数でなく、説明変数部分の範囲
+    int num_slack_AP = ((int)(log(sup_AP) / log(2)) + 1);
+    int num_slack_Users = ((int) (log(num_APs - inf_User) / log(2)) + 1);
+    int num_bits = range_explanatory_var + num_APs * num_slack_AP + num_Users * num_slack_Users;
+
+    for(int s=0; s < pow(2,num_bits); s++){
+        // 目的関数項の植え込み
+        for(int index_user=0; index_user < num_Users; index_user++){
+            // H[s] += ~ ; の形
+        }
+
+        //　各APの上限 <= U のペナルティ埋め込み
+        for (int index_AP = 0; index_AP < num_APs; index_AP++){
+
+        }
+
+        // 各Userの上限 <= L のペナルティ埋め込み
+        for (int index_user = 0; index_user < num_Users ; index_user+){
+
+        }
+    }
+}
+
 int main(){
     // AP数,User数の指定
     const int num_APs = 3;
@@ -159,9 +214,13 @@ int main(){
     const double width_y = 100.0;
     // 係数行列
     double g[num_Users][num_APs];
+    //制約条件の定数
+    const L = 2;    // 各ユーザの接続下限
+    const U = 2;    // 各APの接続上限
+    double hyper_params = 1.0;
     // capacityの alpha, beta および ノイズ pow_sigma の定義
     const double alpha = 1.7;
-    const double beta = 80.0;
+    const double beta = 64.0;
     const double pow_sigma = 2.07e-12;
 
     // bit数の定義
@@ -172,7 +231,7 @@ int main(){
     Opt_sol opt;
 
     // 以下の手順を for num_random_gene
-    for(int index_random_gene=0; index_random_gene<num_random_gene; index_random_gene++){
+    for(int index_random_gene=0; index_random_gene < num_random_gene; index_random_gene++){
         
         for(int index_Users=0; index_Users < num_Users; index_Users++){
             // 乱数によるUser生成
@@ -185,10 +244,31 @@ int main(){
             }
         }
         
-        // g[][]から目的関数 f(s) を作成
+        // g[][]から目的関数 H(s) を作成
+        double **Q = (double **) calloc(num_bits, sizeof(double *));
+        double *H_sec = (double *) calloc(pow(2,num_bits), sizeof(double));
+        double *H_strict = (double *) calloc(pow(2,num_bits), sizeof(double));
+        Initialization_array_double(H_sec,pow(2,num_bits));
         
+        double term_const;
+        term_const += make_QUBO_coef(Q,g,num_Users,num_APs,U,L,hyper_params);
+        Add_Energy_QUBO_to_Hamiltonian(H_sec, Q, term_const);
 
         // 各sについて全探索し、厳密最適解と2次打ち切り最適解を探索
+        Max_val max_sec, max_strict;    // 2次と厳密それぞれの最大値
+        max_sec.val = DBL_MIN;
+        max_sec.index = -1;
+        max_sec.val = DBL_MIN;
+        max_sec.index =  -1;
+        for (int index_sol=0; index_sol < pow(2,num_bits); index_sol++){
+            // 2次の場合の最大値とそのインデックス
+            if (H_sec[index_sol] >= max_sec.val){
+                max_sec.val = H_sec[index_sol];
+                max_sec.index = index_sol;
+            }
+
+            
+        }
         // もし最適解が違ったら,問題設定出力 + diff_counter++;
     }
         

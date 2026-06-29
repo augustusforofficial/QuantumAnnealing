@@ -164,7 +164,6 @@ int main()
 
     // Hの初期化
     Initialization_array_double(H, Nums);
-    /* improve : Q[i][j] => J[i][j] => H[i] のどこかでミスっている*/
     Add_Energy_QUBO_to_Hamiltonian(H, Q, term_const);
     Show_Hamiltonian_max_min(H);
 
